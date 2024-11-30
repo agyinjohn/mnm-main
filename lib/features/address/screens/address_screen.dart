@@ -51,35 +51,35 @@ class _AddressScreenState extends State<AddressScreen> {
     cityController.dispose();
   }
 
-  void onApplePayResult(res) {
-    if (Provider.of<UserProvider>(context, listen: false)
-        .user
-        .address
-        .isEmpty) {
-      addressServices.saveUserAddress(
-          context: context, address: addressToBeUsed);
-    }
-    addressServices.placeOrder(
-      context: context,
-      address: addressToBeUsed,
-      totalSum: double.parse(widget.totalAmount),
-    );
-  }
+  // void onApplePayResult(res) {
+  //   if (Provider.of<UserProvider>(context, listen: false)
+  //       .user
+  //       .address
+  //       .isEmpty) {
+  //     addressServices.saveUserAddress(
+  //         context: context, address: addressToBeUsed);
+  //   }
+  //   addressServices.placeOrder(
+  //     context: context,
+  //     address: addressToBeUsed,
+  //     totalSum: double.parse(widget.totalAmount),
+  //   );
+  // }
 
-  void onGooglePayResult(res) {
-    if (Provider.of<UserProvider>(context, listen: false)
-        .user
-        .address
-        .isEmpty) {
-      addressServices.saveUserAddress(
-          context: context, address: addressToBeUsed);
-    }
-    addressServices.placeOrder(
-      context: context,
-      address: addressToBeUsed,
-      totalSum: double.parse(widget.totalAmount),
-    );
-  }
+  // void onGooglePayResult(res) {
+  //   if (Provider.of<UserProvider>(context, listen: false)
+  //       .user
+  //       .address
+  //       .isEmpty) {
+  //     addressServices.saveUserAddress(
+  //         context: context, address: addressToBeUsed);
+  //   }
+  //   addressServices.placeOrder(
+  //     context: context,
+  //     address: addressToBeUsed,
+  //     totalSum: double.parse(widget.totalAmount),
+  //   );
+  // }
 
   void payPressed(String addressFromProvider) {
     addressToBeUsed = "";
@@ -105,8 +105,6 @@ class _AddressScreenState extends State<AddressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var address = context.watch<UserProvider>().user.address;
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
@@ -123,36 +121,35 @@ class _AddressScreenState extends State<AddressScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              if (address.isNotEmpty)
-                Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black12,
-                        ),
+              Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black12,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          address,
-                          style: const TextStyle(
-                            fontSize: 18,
-                          ),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'vcvbcvc',
+                        style: TextStyle(
+                          fontSize: 18,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'OR',
-                      style: TextStyle(
-                        fontSize: 18,
-                      ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'OR',
+                    style: TextStyle(
+                      fontSize: 18,
                     ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
               Form(
                 key: _addressFormKey,
                 child: Column(

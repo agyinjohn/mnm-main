@@ -1,161 +1,240 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:m_n_m/features/cart/cart_item_model.dart';
+import 'package:m_n_m/features/cart/providers/cart_provider.dart';
+import 'package:m_n_m/order/upload_order.dart';
+import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
+import '../../../common/user_id_provider.dart';
 
-import '../../../common/widgets/custom_button.dart';
-import '../../../constants/global_variables.dart';
-import '../../../providers/user_provider.dart';
-import '../../address/screens/address_screen.dart';
-import '../../home/widgets/address_box.dart';
-import '../../search/screens/search_screen.dart';
-import '../widgets/cart_product.dart';
-import '../widgets/cart_subtotal.dart';
-
-class CartScreen extends StatefulWidget {
+class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  ConsumerState<CartScreen> createState() => _CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
-  void navigateToSearchScreen(String query) {
-    Navigator.pushNamed(context, SearchScreen.routeName, arguments: query);
+class _CartScreenState extends ConsumerState<CartScreen> {
+  final List<Map<String, dynamic>> virtualOrder = [];
+  bool isloading = false;
+  @override
+  void initState() {
+    super.initState();
+    getCartItems();
   }
 
-  void navigateToAddress(int sum) {
-    Navigator.pushNamed(
-      context,
-      AddressScreen.routeName,
-      arguments: sum.toString(),
+  Future<void> getCartItems() async {
+    print('fetching store items');
+    final stores = await ref.read(cartProvider.notifier).fetchStores();
+    print(
+        'fetched stores: ${stores.map((e) => e.items.map((i) => i.addons.map((a) => a.name)))}');
+  }
+
+  Future<void> removeCartItem(String productId) async {
+    await ref.read(cartProvider.notifier).removeItem(productId);
+  }
+
+  void addToVirtualOrder(CartItem item, String storeId) {
+    // Find existing store in virtualOrder
+    final existingOrder = virtualOrder.firstWhere(
+      (order) => order['storeId'] == storeId,
+      orElse: () => {},
     );
+
+    if (existingOrder.isNotEmpty) {
+      // Add item to the existing store order
+      setState(() {
+        existingOrder['items'].add({
+          'itemSizeId': item.productId,
+          'quantity': item.quantity,
+          'addons': item.addons.map((addon) {
+            return {
+              'name': addon.name,
+              'price': addon.price,
+            };
+          }).toList(),
+        });
+      });
+    } else {
+      // Create a new store order entry
+      setState(() {
+        virtualOrder.add({
+          'storeId': storeId,
+          'items': [
+            {
+              'itemSizeId': item.productId,
+              'quantity': item.quantity,
+              'addons': item.addons.map((addon) {
+                return {
+                  'name': addon.name,
+                  'price': addon.price * addon.quantity,
+                };
+              }).toList(),
+            },
+          ],
+          'address': {
+            'longitude': '-0.2235431', // Replace with actual longitude
+            'latitude': '5.5321491', // Replace with actual latitude
+          },
+        });
+      });
+    }
+  }
+
+  Future<void> confirmOrder() async {
+    setState(() {
+      isloading = true;
+    });
+    await uploadOrders(virtualOrder);
+    setState(() {
+      isloading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().user;
-    int sum = 0;
-    user.cart
-        .map((e) => sum += e['quantity'] * e['product']['price'] as int)
-        .toList();
+    final cartState = ref.watch(cartProvider);
+    final userIdAsync = ref.watch(userIdProvider);
 
     return Scaffold(
-      // appBar: PreferredSize(
-      //   preferredSize: const Size.fromHeight(60),
-      //   child: AppBar(
-      //     flexibleSpace: Container(
-      //       decoration: const BoxDecoration(
-      //         gradient: GlobalVariables.appBarGradient,
-      //       ),
-      //     ),
-      //     title: Row(
-      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //       children: [
-      //         Expanded(
-      //           child: Container(
-      //             height: 42,
-      //             margin: const EdgeInsets.only(left: 15),
-      //             child: Material(
-      //               borderRadius: BorderRadius.circular(7),
-      //               elevation: 1,
-      //               child: TextFormField(
-      //                 onFieldSubmitted: navigateToSearchScreen,
-      //                 decoration: InputDecoration(
-      //                   prefixIcon: InkWell(
-      //                     onTap: () {},
-      //                     child: const Padding(
-      //                       padding: EdgeInsets.only(
-      //                         left: 6,
-      //                       ),
-      //                       child: Icon(
-      //                         Icons.search,
-      //                         color: Colors.black,
-      //                         size: 23,
-      //                       ),
-      //                     ),
-      //                   ),
-      //                   filled: true,
-      //                   fillColor: Colors.white,
-      //                   contentPadding: const EdgeInsets.only(top: 10),
-      //                   border: const OutlineInputBorder(
-      //                     borderRadius: BorderRadius.all(
-      //                       Radius.circular(7),
-      //                     ),
-      //                     borderSide: BorderSide.none,
-      //                   ),
-      //                   enabledBorder: const OutlineInputBorder(
-      //                     borderRadius: BorderRadius.all(
-      //                       Radius.circular(7),
-      //                     ),
-      //                     borderSide: BorderSide(
-      //                       color: Colors.black38,
-      //                       width: 1,
-      //                     ),
-      //                   ),
-      //                   hintText: 'Search Amazon.in',
-      //                   hintStyle: const TextStyle(
-      //                     fontWeight: FontWeight.w500,
-      //                     fontSize: 17,
-      //                   ),
-      //                 ),
-      //               ),
-      //             ),
-      //           ),
-      //         ),
-      //         Container(
-      //           color: Colors.transparent,
-      //           height: 42,
-      //           margin: const EdgeInsets.symmetric(horizontal: 10),
-      //           child: const Icon(Icons.mic, color: Colors.black, size: 25),
-      //         ),
-      //       ],
-      //     ),
-      //   ),
-      // ),
-      body: SingleChildScrollView(
-        child: user.cart.isEmpty
-            ? const Center(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 500,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(Icons.shopping_cart_checkout_sharp),
-                      Text('Your Cart is Empty')
-                    ],
-                  ),
-                ),
-              )
-            : Column(
-                children: [
-                  ListView.builder(
-                    itemCount: user.cart.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return CartProduct(
-                        index: index,
+      appBar: AppBar(
+        title: const Text("Your Cart"),
+        centerTitle: true,
+      ),
+      body: userIdAsync.when(
+        data: (userId) {
+          if (userId == null) {
+            return const Center(child: Text("User not logged in"));
+          }
+
+          if (cartState.isEmpty) {
+            return const Center(child: Text("Your cart is empty"));
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: cartState.length,
+                    itemBuilder: (context, storeIndex) {
+                      final store = cartState[storeIndex];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: store.items.map((item) {
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 16.0),
+                              title: Text(
+                                item.name,
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Quantity: ${item.quantity}",
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  Text(
+                                    "Price: \$${item.price}",
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  if (item.addons.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      "Add-ons:",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    ...item.addons.map((addon) => Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 8.0),
+                                          child: Text(
+                                            "${addon.name} - \$${addon.price} x ${addon.quantity}",
+                                            style:
+                                                const TextStyle(fontSize: 14),
+                                          ),
+                                        )),
+                                  ],
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.add_shopping_cart,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    onPressed: () =>
+                                        addToVirtualOrder(item, store.storeId),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.redAccent,
+                                    ),
+                                    onPressed: () =>
+                                        removeCartItem(item.productId),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       );
                     },
                   ),
-                  const AddressBox(),
-                  const CartSubtotal(),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CustomButton(
-                      text: 'Proceed to Buy (${user.cart.length} items)',
-                      onTap: () => navigateToAddress(sum),
-                      color: Colors.yellow[600],
-                    ),
+                ),
+                if (virtualOrder.isNotEmpty) ...[
+                  const Divider(),
+                  const Text(
+                    "Virtual Order",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 15),
-                  Container(
-                    color: Colors.black12.withOpacity(0.08),
-                    height: 1,
+                  ...virtualOrder.map((order) {
+                    return ListTile(
+                      title: Text("Store ID: ${order['storeId']}"),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...order['items'].map<Widget>((item) => Text(
+                                "Item Size ID: ${item['itemSizeId']} - Quantity: ${item['quantity']}",
+                              )),
+                          const SizedBox(height: 8),
+                          ...order['items'].map<Widget>(
+                              (it) => Text('Addons: ${it['addons']}')),
+                          const SizedBox(height: 8),
+                          Text(
+                              "Address: (${order['address']['longitude']}, ${order['address']['latitude']})"),
+                        ],
+                      ),
+                    );
+                  }),
+                  ElevatedButton(
+                    onPressed: confirmOrder,
+                    child: isloading
+                        ? const NutsActivityIndicator()
+                        : const Text("Confirm Order"),
                   ),
-                  const SizedBox(height: 5),
                 ],
-              ),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => const Center(child: Text("Error loading cart")),
       ),
     );
   }

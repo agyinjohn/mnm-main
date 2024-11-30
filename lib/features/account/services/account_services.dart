@@ -15,13 +15,14 @@ class AccountServices {
   Future<List<Order>> fetchMyOrders({
     required BuildContext context,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
     List<Order> orderList = [];
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res =
           await http.get(Uri.parse('$uri/api/orders/me'), headers: {
         'Content-Type': 'application/json; charset=UTF-8',
-        'x-auth-token': userProvider.user.token,
+        'x-auth-token': token!,
       });
 
       httpErrorHandle(

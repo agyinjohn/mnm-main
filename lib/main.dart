@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:m_n_m/common/widgets/bottom_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:m_n_m/constants/global_variables.dart';
-import 'package:m_n_m/features/admin/screens/admin_screen.dart';
 import 'package:m_n_m/features/auth/screens/onboarding_screen.dart';
+import 'package:m_n_m/features/auth/screens/sign_in_screen.dart';
 import 'package:m_n_m/features/auth/services/auth_service.dart';
-import 'package:m_n_m/providers/user_provider.dart';
+import 'package:m_n_m/features/home/screens/home_page.dart';
 import 'package:m_n_m/router.dart';
-import 'package:provider/provider.dart';
+import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(
-      create: (context) => UserProvider(),
-    ),
-  ], child: const MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -24,12 +22,47 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final AuthService authService = AuthService();
-
+  // final AuthService authService = AuthService();
+  bool isTokenValid = false;
+  String? userRole;
+  bool isloading = true;
+  bool isUser = false;
   @override
   void initState() {
     super.initState();
-    authService.getUserData(context);
+    // authService.getUserData(context);
+    checkTokenValidity();
+  }
+
+  Future<void> checkTokenValidity() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    final token = preferences.getString('x-auth-token');
+    final isUserLoggedIn = preferences.getBool('isUser') ?? false;
+    setState(() {
+      isloading = true;
+      isUser = isUserLoggedIn;
+    });
+    try {
+      if (token != null && !JwtDecoder.isExpired(token)) {
+        // Decode token to get user role
+        final decodedToken = JwtDecoder.decode(token);
+        setState(() {
+          isTokenValid = true;
+          userRole =
+              decodedToken['role']; // Assuming 'role' is in the token payload
+          isloading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isTokenValid = false;
+        isloading = false;
+      });
+    } finally {
+      setState(() {
+        isloading = false;
+      });
+    }
   }
 
   @override
@@ -48,14 +81,16 @@ class _MyAppState extends State<MyApp> {
             color: Colors.black,
           ),
         ),
-        useMaterial3: true, // can remove this line
+        useMaterial3: true,
       ),
       onGenerateRoute: (settings) => generateRoute(settings),
-      home: Provider.of<UserProvider>(context).user.token.isNotEmpty
-          ? Provider.of<UserProvider>(context).user.type == 'user'
-              ? const BottomBar()
-              : const AdminScreen()
-          : const OnboardingScreen(),
+      home: isTokenValid
+          ? (userRole == 'customer' ? const HomeScreen() : const SignInScreen())
+          : isloading
+              ? const Scaffold(body: Center(child: NutsActivityIndicator()))
+              : isUser
+                  ? const SignInScreen()
+                  : const OnboardingScreen(),
     );
   }
 }

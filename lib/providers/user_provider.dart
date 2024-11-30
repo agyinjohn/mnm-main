@@ -1,27 +1,29 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m_n_m/models/user.dart';
 
-class UserProvider extends ChangeNotifier {
-  User _user = User(
-    id: '',
-    name: '',
-    email: '',
-    password: '',
-    address: '',
-    type: '',
-    token: '',
-    cart: [],
-  );
+class UserNotifier extends StateNotifier<User> {
+  UserNotifier()
+      : super(User(
+            id: '',
+            name: '',
+            email: '',
+            password: '',
+            address: '',
+            role: '',
+            token: '',
+            phoneNumber: ''));
 
-  User get user => _user;
-
+  // Function to set user from JSON data
   void setUser(String user) {
-    _user = User.fromJson(user);
-    notifyListeners();
+    state = User.fromJson(user);
   }
 
+  // Function to set user from a User model
   void setUserFromModel(User user) {
-    _user = user;
-    notifyListeners();
+    state = user;
   }
 }
+
+final userProvider = StateNotifierProvider<UserNotifier, User>((ref) {
+  return UserNotifier();
+});

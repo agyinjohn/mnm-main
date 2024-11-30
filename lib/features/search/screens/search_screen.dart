@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m_n_m/features/home/widgets/address_box.dart';
 
 import '../../../common/widgets/loader.dart';
@@ -8,7 +9,7 @@ import '../../product_details/screens/product_details_screen.dart';
 import '../services/search_services.dart';
 import '../widget/searched_product.dart';
 
-class SearchScreen extends StatefulWidget {
+class SearchScreen extends ConsumerStatefulWidget {
   static const String routeName = '/search-screen';
   final String searchQuery;
   const SearchScreen({
@@ -17,10 +18,10 @@ class SearchScreen extends StatefulWidget {
   });
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends ConsumerState<SearchScreen> {
   List<Product>? products;
   final SearchServices searchServices = SearchServices();
 
@@ -32,7 +33,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   fetchSearchedProduct() async {
     products = await searchServices.fetchSearchedProduct(
-        context: context, searchQuery: widget.searchQuery);
+        ref: ref, context: context, searchQuery: widget.searchQuery);
     setState(() {});
   }
 

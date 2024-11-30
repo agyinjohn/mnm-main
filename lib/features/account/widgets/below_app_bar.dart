@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 import '../../../constants/global_variables.dart';
 import '../../../providers/user_provider.dart';
 
-class BelowAppBar extends StatelessWidget {
+class BelowAppBar extends ConsumerWidget {
   const BelowAppBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final user = Provider.of<UserProvider>(context).user;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider);
 
     return Container(
       decoration: const BoxDecoration(

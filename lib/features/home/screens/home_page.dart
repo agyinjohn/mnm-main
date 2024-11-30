@@ -1,24 +1,99 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:m_n_m/common/widgets/loading_schema.dart';
 import 'package:m_n_m/constants/global_variables.dart';
-import 'package:m_n_m/features/home/screens/cart_page.dart';
+import 'package:m_n_m/features/cart/providers/cart_provider.dart';
 import 'package:m_n_m/features/home/screens/categories_page.dart';
 import 'package:m_n_m/features/home/screens/category_deals_screen.dart';
+import 'package:m_n_m/features/home/screens/error_page.dart';
 import 'package:m_n_m/features/home/screens/favourite_screen.dart';
 import 'package:m_n_m/features/home/screens/profile_page.dart';
-import 'package:provider/provider.dart';
-
-import '../../../providers/user_provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../cart/screens/cart_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
   static const routeName = '/homescreen';
   @override
   HomeScreenState createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends ConsumerState<HomeScreen> {
+  String? _currentAddress;
+  Position? _currentPosition;
+  bool isloading = false;
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  // Method to get current location
+  // Method to get current location
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      isloading = true;
+    });
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      // Handle permission denied
+
+      setState(() {
+        isloading = false;
+      });
+      return;
+    }
+
+    // Specify the settings for location retrieval
+    LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.best, // Desired accuracy level
+      distanceFilter:
+          100, // Minimum distance (in meters) before an update is triggered
+    );
+
+    // Get the current position using the settings
+    Position position = await Geolocator.getCurrentPosition(
+      locationSettings: locationSettings,
+    );
+    print(position);
+    setState(() {
+      _currentPosition = position;
+      isloading = false;
+    });
+
+    // Perform reverse geocoding to get the address
+    _getAddressFromLatLng();
+  }
+
+  // Method to get address (city and specific location) from coordinates
+  Future<void> _getAddressFromLatLng() async {
+    try {
+      setState(() {
+        isloading = true;
+      });
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+      );
+
+      Placemark place = placemarks[0];
+
+      setState(() {
+        // Get the specific address or city
+        _currentAddress = "${place.street}, ${place.locality}";
+        isloading = false;
+      });
+      print("Found this code ");
+    } catch (e) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const ErrorPage()));
+    } finally {
+      isloading = false;
+    }
+  }
+
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -29,9 +104,10 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userCartLen = context.watch<UserProvider>().user.cart.length;
+    final cart = ref.watch(cartProvider);
     final List<Widget> bottomNavigationBarScreens = [
       HomePage(
+        currentAddress: _currentAddress,
         onCategoryTap: () => _onItemTapped(1), // Navigate to Categories
         onFavouriteTap: () => _onItemTapped(2), // Navigate to Favourites
       ),
@@ -42,42 +118,46 @@ class HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      body: SafeArea(
-        child: bottomNavigationBarScreens[_selectedIndex],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.grey[100],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
-        unselectedLabelStyle: const TextStyle(color: Colors.black54),
-        selectedLabelStyle:
-            const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category_outlined),
-            label: 'Categories',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      body: isloading
+          ? const Center(child: HomeLoadingShimmer())
+          : SafeArea(
+              child: bottomNavigationBarScreens[_selectedIndex],
+            ),
+      bottomNavigationBar: isloading
+          ? null
+          : BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.grey[100],
+              currentIndex: _selectedIndex,
+              selectedItemColor: Colors.black,
+              unselectedItemColor: Colors.black54,
+              unselectedLabelStyle: const TextStyle(color: Colors.black54),
+              selectedLabelStyle: const TextStyle(
+                  color: Colors.black, fontWeight: FontWeight.bold),
+              onTap: _onItemTapped,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.category_outlined),
+                  label: 'Categories',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favorites',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart),
+                  label: 'Cart',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.account_circle),
+                  label: 'Profile',
+                ),
+              ],
+            ),
     );
   }
 }
@@ -85,12 +165,13 @@ class HomeScreenState extends State<HomeScreen> {
 class HomePage extends StatelessWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onFavouriteTap;
-
-  HomePage({
-    super.key,
-    required this.onCategoryTap,
-    required this.onFavouriteTap,
-  });
+  final String? currentAddress;
+  HomePage(
+      {super.key,
+      required this.onCategoryTap,
+      required this.onFavouriteTap,
+      required this.currentAddress,
+      required});
 
   final List<Category> categories = [
     Category('Food', 'assets/images/cat-food.jpg'),
@@ -144,7 +225,9 @@ class HomePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const HomeHeader(),
+          HomeHeader(
+            currentLocation: currentAddress,
+          ),
           const SizedBox(height: 16),
           const SearchBar(),
           const SizedBox(height: 16),
@@ -189,25 +272,31 @@ class HomePage extends StatelessWidget {
 // Other widgets (HomeHeader, SearchBar, BannerCard, etc.) remain unchanged...
 
 // Home header widget
-class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
-
+class HomeHeader extends ConsumerWidget {
+  const HomeHeader({super.key, required this.currentLocation});
+  final String? currentLocation;
   @override
-  Widget build(BuildContext context) {
-    final userCartLen = context.watch<UserProvider>().user.cart.length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cart = ref.watch(cartProvider);
     return Row(
       children: [
         const CircleIconButton(icon: Icons.category_outlined),
         const SizedBox(width: 8),
-        const Expanded(
+        Expanded(
           child: LocationInfo(
-            location: 'Ayeduase Gate, Kumasi',
+            location: currentLocation!,
             currentLocation: 'Current Location',
           ),
         ),
         const SizedBox(width: 8),
-        IconWithBadge(
-            icon: Icons.shopping_cart_outlined, badgeCount: userCartLen),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const CartScreen()));
+          },
+          child: IconWithBadge(
+              icon: Icons.shopping_cart_outlined, badgeCount: cart.length),
+        ),
         const SizedBox(width: 8),
         const IconWithBadge(
             icon: Icons.notifications_none_outlined, badgeCount: 1),
@@ -364,7 +453,7 @@ class BannerCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 26, 80, 26),
+              padding: const EdgeInsets.fromLTRB(15, 26, 70, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

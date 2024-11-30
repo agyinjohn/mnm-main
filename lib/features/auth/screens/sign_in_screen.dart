@@ -66,7 +66,7 @@ class _SignInPageState extends State<SignInScreen> {
         Padding(
           padding: EdgeInsets.fromLTRB(
             14.0,
-            size.height * 0.12,
+            size.height * 0.10,
             14.00,
             size.height * 0.06,
           ),
@@ -171,7 +171,9 @@ class _SignInPageState extends State<SignInScreen> {
                       );
                     }).toList(),
                   ),
-                  const Spacer(),
+                  const SizedBox(
+                    height: 15,
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -200,14 +202,21 @@ class _SignInPageState extends State<SignInScreen> {
         ),
         if (loading)
           Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.transparent,
-            child: const Center(
-              child: NutsActivityIndicator(
-                activeColor: Colors.grey,
-                inactiveColor: Colors.lightGreen,
-                radius: 30,
+            height: size.height,
+            width: size.width,
+            decoration: const BoxDecoration(color: Colors.white70),
+            child: Center(
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(10)),
+                width: 50,
+                child: const Center(
+                  child: NutsActivityIndicator(
+                    radius: 15,
+                  ),
+                ),
               ),
             ),
           )

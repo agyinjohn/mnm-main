@@ -7,13 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:m_n_m/features/home/screens/home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../../common/widgets/bottom_bar.dart';
 import '../../../constants/error_handling.dart';
 import '../../../constants/global_variables.dart';
 import '../../../constants/utils.dart';
 import '../../../models/user.dart';
-import '../../../providers/user_provider.dart';
 
 class AuthService {
   // sign up user
@@ -22,21 +19,21 @@ class AuthService {
     required String email,
     required String password,
     required String name,
+    required String phone,
   }) async {
     bool response = false;
 
     try {
       User user = User(
-        id: '',
-        name: name,
-        password: password,
-        email: email,
-        address: '',
-        type: '',
-        token: '',
-        cart: [],
-      );
-
+          id: email,
+          name: name,
+          password: password,
+          email: email,
+          address: '',
+          role: 'customer',
+          token: '',
+          phoneNumber: phone);
+      print(user.role);
       http.Response res = await http.post(
         Uri.parse('$uri/api/signup'),
         body: user.toJson(),
@@ -46,6 +43,7 @@ class AuthService {
       );
       final int statusCode = res.statusCode;
       print(res.body);
+      print(statusCode);
       if (statusCode == 400) {
         // Handle specific error case when user already exists
         final responseBody = jsonDecode(res.body);
@@ -60,7 +58,7 @@ class AuthService {
               responseBody['errors']?[0]['msg'] ?? 'Unknown error';
           showSnackBar(context, errorMessage);
         }
-      } else if (statusCode == 200) {
+      } else if (statusCode == 201) {
         response = true;
       } else {
         // Handle other status codes
@@ -83,16 +81,19 @@ class AuthService {
     required String password,
   }) async {
     try {
+      print(email);
+      print(password);
       http.Response res = await http.post(
-        Uri.parse('$uri/api/signin'),
+        Uri.parse('$uri/api/login'),
         body: jsonEncode({
-          'email': email,
+          'id': email,
           'password': password,
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
       );
+      print(jsonDecode(res.body));
       httpErrorHandle(
         response: res,
         // ignore: use_build_context_synchronously
@@ -100,7 +101,7 @@ class AuthService {
         onSuccess: () async {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           // ignore: use_build_context_synchronously
-          Provider.of<UserProvider>(context, listen: false).setUser(res.body);
+
           await prefs.setString('x-auth-token', jsonDecode(res.body)['token']);
           Navigator.pushNamedAndRemoveUntil(
             // ignore: use_build_context_synchronously
@@ -149,8 +150,6 @@ class AuthService {
         );
 
         // ignore: use_build_context_synchronously
-        var userProvider = Provider.of<UserProvider>(context, listen: false);
-        userProvider.setUser(userRes.body);
       }
     } catch (e) {
       // ignore: use_build_context_synchronously

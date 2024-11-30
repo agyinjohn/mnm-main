@@ -10,13 +10,11 @@ import 'package:m_n_m/features/auth/screens/sign_up_screen.dart';
 import 'package:m_n_m/features/home/screens/category_deals_screen.dart';
 import 'package:m_n_m/features/home/screens/home_page.dart';
 import 'package:m_n_m/features/home/screens/home_screen.dart';
-
 import 'package:m_n_m/features/order_details/screens/order_details.dart';
 import 'package:m_n_m/features/product_details/screens/product_details_screen.dart';
 import 'package:m_n_m/features/search/screens/search_screen.dart';
 import 'package:m_n_m/models/order.dart';
 import 'package:m_n_m/models/product.dart';
-
 import 'features/admin/screens/add_product_screen.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
@@ -41,11 +39,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       );
     case HomeScreen.routeName:
       return MaterialPageRoute(builder: (context) => const HomeScreen());
-    case BottomBar.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BottomBar(),
-      );
+    // case BottomBar.routeName:
+    //   return MaterialPageRoute(
+    //     settings: routeSettings,
+    //     builder: (_) => const BottomBar(),
+    //   );
     case SignInScreen.routeName:
       return MaterialPageRoute(builder: (_) => const SignInScreen());
     case AddProductScreen.routeName:

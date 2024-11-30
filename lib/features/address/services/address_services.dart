@@ -1,29 +1,27 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../constants/error_handling.dart';
 import '../../../constants/global_variables.dart';
 import '../../../constants/utils.dart';
 import '../../../models/product.dart';
 import '../../../models/user.dart';
-import '../../../providers/user_provider.dart';
 
 class AddressServices {
   void saveUserAddress({
     required BuildContext context,
     required String address,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res = await http.post(
         Uri.parse('$uri/api/save-user-address'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'x-auth-token': token!,
         },
         body: jsonEncode({
           'address': address,
@@ -31,17 +29,10 @@ class AddressServices {
       );
 
       httpErrorHandle(
-        response: res,
-        // ignore: use_build_context_synchronously
-        context: context,
-        onSuccess: () {
-          User user = userProvider.user.copyWith(
-            address: jsonDecode(res.body)['address'],
-          );
-
-          userProvider.setUserFromModel(user);
-        },
-      );
+          response: res,
+          // ignore: use_build_context_synchronously
+          context: context,
+          onSuccess: () {});
     } catch (e) {
       // ignore: use_build_context_synchronously
       showSnackBar(context, e.toString());
@@ -54,16 +45,15 @@ class AddressServices {
     required String address,
     required double totalSum,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res = await http.post(Uri.parse('$uri/api/order'),
           headers: {
             'Content-Type': 'application/json; charset=UTF-8',
-            'x-auth-token': userProvider.user.token,
+            'x-auth-token': token!,
           },
           body: jsonEncode({
-            'cart': userProvider.user.cart,
             'address': address,
             'totalPrice': totalSum,
           }));
@@ -74,10 +64,6 @@ class AddressServices {
         context: context,
         onSuccess: () {
           showSnackBar(context, 'Your order has been placed!');
-          User user = userProvider.user.copyWith(
-            cart: [],
-          );
-          userProvider.setUserFromModel(user);
         },
       );
     } catch (e) {
@@ -91,14 +77,14 @@ class AddressServices {
     required Product product,
     required VoidCallback onSuccess,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res = await http.post(
         Uri.parse('$uri/admin/delete-product'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'x-auth-token': token!,
         },
         body: jsonEncode({
           'id': product.id,

@@ -6,9 +6,9 @@ class User {
   final String email;
   final String password;
   final String address;
-  final String type;
+  final String phoneNumber;
+  final String role;
   final String token;
-  final List<dynamic> cart;
 
   User({
     required this.id,
@@ -16,9 +16,9 @@ class User {
     required this.email,
     required this.password,
     required this.address,
-    required this.type,
+    required this.role,
+    required this.phoneNumber,
     required this.token,
-    required this.cart,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,26 +28,22 @@ class User {
       'email': email,
       'password': password,
       'address': address,
-      'type': type,
+      'phoneNumber': phoneNumber,
+      'role': role,
       'token': token,
-      'cart': cart,
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       id: map['_id'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       password: map['password'] ?? '',
       address: map['address'] ?? '',
-      type: map['type'] ?? '',
+      role: map['role'] ?? '',
       token: map['token'] ?? '',
-      cart: List<Map<String, dynamic>>.from(
-        map['cart']?.map(
-          (x) => Map<String, dynamic>.from(x),
-        ),
-      ),
     );
   }
 
@@ -61,19 +57,19 @@ class User {
     String? email,
     String? password,
     String? address,
-    String? type,
+    String? role,
     String? token,
-    List<dynamic>? cart,
+    String? phoneNumber,
   }) {
     return User(
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
       password: password ?? this.password,
       address: address ?? this.address,
-      type: type ?? this.type,
+      role: role ?? this.role,
       token: token ?? this.token,
-      cart: cart ?? this.cart,
     );
   }
 }

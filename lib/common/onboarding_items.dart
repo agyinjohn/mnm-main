@@ -16,7 +16,7 @@ List<OnboardingData> onboardingData = [
   OnboardingData(
     title: 'Safe and Reliable Delivery',
     description:
-        'Enjoy fast and sage delivery right to your doorstep at affordable prices',
+        'Enjoy fast and save delivery right to your doorstep at affordable prices',
     imagePath: 'assets/images/gif3.gif',
   ),
 ];

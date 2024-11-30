@@ -5,6 +5,7 @@ import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../constants/error_handling.dart';
 import '../../../constants/global_variables.dart';
 import '../../../constants/utils.dart';
@@ -23,9 +24,9 @@ class AdminServices {
     required String category,
     required List<File> images,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       final cloudinary = CloudinaryPublic('denfgaxvg', 'uszbstnu');
       List<String> imageUrls = [];
 
@@ -49,7 +50,7 @@ class AdminServices {
         Uri.parse('$uri/admin/add-product'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'x-auth-token': token!,
         },
         body: product.toJson(),
       );
@@ -72,13 +73,14 @@ class AdminServices {
 
   // get all the products
   Future<List<Product>> fetchAllProducts(BuildContext context) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
     List<Product> productList = [];
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res =
           await http.get(Uri.parse('$uri/admin/get-products'), headers: {
         'Content-Type': 'application/json; charset=UTF-8',
-        'x-auth-token': userProvider.user.token,
+        'x-auth-token': token!,
       });
 
       httpErrorHandle(
@@ -108,14 +110,14 @@ class AdminServices {
     required Product product,
     required VoidCallback onSuccess,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res = await http.post(
         Uri.parse('$uri/admin/delete-product'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'x-auth-token': token!,
         },
         body: jsonEncode({
           'id': product.id,
@@ -135,13 +137,14 @@ class AdminServices {
   }
 
   Future<List<Order>> fetchAllOrders(BuildContext context) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
     List<Order> orderList = [];
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res =
           await http.get(Uri.parse('$uri/admin/get-orders'), headers: {
         'Content-Type': 'application/json; charset=UTF-8',
-        'x-auth-token': userProvider.user.token,
+        'x-auth-token': token!,
       });
 
       httpErrorHandle(
@@ -171,14 +174,14 @@ class AdminServices {
     required Order order,
     required VoidCallback onSuccess,
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res = await http.post(
         Uri.parse('$uri/admin/change-order-status'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'x-auth-token': token!,
         },
         body: jsonEncode({
           'id': order.id,
@@ -197,14 +200,15 @@ class AdminServices {
   }
 
   Future<Map<String, dynamic>> getEarnings(BuildContext context) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
     List<Sales> sales = [];
     int totalEarning = 0;
     try {
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString('token');
       http.Response res =
           await http.get(Uri.parse('$uri/admin/analytics'), headers: {
         'Content-Type': 'application/json; charset=UTF-8',
-        'x-auth-token': userProvider.user.token,
+        'x-auth-token': token!,
       });
 
       httpErrorHandle(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-String uri = 'http://192.168.87.58:3000';
+String uri = 'http://192.168.158.58:8000';
 
 class GlobalVariables {
   // COLORS
@@ -25,6 +25,13 @@ class GlobalVariables {
     'https://images-eu.ssl-images-amazon.com/images/G/31/img22/Wireless/AdvantagePrime/BAU/14thJan/D37196025_IN_WL_AdvantageJustforPrime_Jan_Mob_ingress-banner_1242x450.jpg',
     'https://images-na.ssl-images-amazon.com/images/G/31/Symbol/2020/00NEW/1242_450Banners/PL31_copy._CB432483346_.jpg',
     'https://images-na.ssl-images-amazon.com/images/G/31/img21/shoes/September/SSW/pc-header._CB641971330_.jpg',
+  ];
+
+  static const categoriesList = [
+    'fast food & beverages',
+    'pharmacy',
+    'gift packages',
+    'Gloceries and supermarkets',
   ];
 
   static const List<Map<String, String>> categoryImages = [
@@ -71,6 +78,11 @@ class AppColors {
   static const Color errorColor = Color(
       0xFFB00020); // Red  static const Color dividerColor = Color(0xFFBDBDBD); // Grey
   // Colors for onPrimary and onSecondary surfaces
-  static const Color onPrimaryColor = Color(
-      0xFFFFFFFF); // White  static const Color onSecondaryColor = Color(0xFF000000); // Black
+  static const Color onPrimaryColor = Color(0xFFFFFFFF);
+
+  // White  static const Color onSecondaryColor = Color(0xFF000000); // Black
+
+  static const Color pageHeaderColor = Color(0xB9B9B9B9);
+
+  // Text colors
 }

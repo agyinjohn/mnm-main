@@ -26,6 +26,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   @override
   void dispose() {
@@ -37,6 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void signUpUser() {
     authService.signUpUser(
+      phone: _phoneController.text,
       context: context,
       email: _emailController.text,
       password: _passwordController.text,
