@@ -1,4 +1,5 @@
 // store_items_screen.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
@@ -66,7 +67,8 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
             itemBuilder: (context, index) {
               final item = storeItems[index];
               final images = item['images'] as List<dynamic>;
-              print(item['itemSizes']);
+              // print(images);
+              // print(item['itemSizes']);
               return GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -104,55 +106,69 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                           child: SizedBox(
                             height: 100,
                             width: 100,
-                            child: images.isNotEmpty
-                                ? CarouselSlider(
-                                    options: CarouselOptions(
-                                      autoPlay: true,
-                                      autoPlayInterval: const Duration(
-                                          seconds: 10), // Delay of 3 seconds
-                                      autoPlayAnimationDuration:
-                                          const Duration(seconds: 5),
-                                      aspectRatio: 1.0,
-                                      enlargeCenterPage: true,
-                                      viewportFraction: 1.0,
-                                    ),
-                                    items: images.map((img) {
-                                      return Image.network(
-                                        '$uri${img['url']}',
-                                        fit: BoxFit.cover,
-                                        width: 100,
-                                        height: 100,
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child;
-                                          return Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                              color: Colors.grey[300],
-                                              width: 100,
-                                              height: 100,
-                                            ),
-                                          );
-                                        },
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Icon(Icons.broken_image,
-                                              color: Colors.grey[700]);
-                                        },
-                                      );
-                                    }).toList(),
-                                  )
-                                : Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.grey[100]!,
-                                    child: Container(
-                                      color: Colors.grey[300],
-                                      width: 100,
-                                      height: 100,
-                                    ),
-                                  ),
+                            child: CachedNetworkImage(
+                              imageUrl: '$uri${images[0]['url']}}',
+                              fit: BoxFit.cover,
+                              width: 120,
+                              placeholder: (context, url) => Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.grey[100]!,
+                                child: Container(
+                                  color: Colors.grey[300],
+                                  width: 120,
+                                  height: 120,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                                size: 50,
+                              ),
+                            ),
+                            // child: CarouselSlider(
+                            //     options: CarouselOptions(
+                            //       autoPlay: true,
+                            //       autoPlayInterval: const Duration(
+                            //           seconds: 10), // Delay of 3 seconds
+                            //       autoPlayAnimationDuration:
+                            //           const Duration(seconds: 5),
+                            //       aspectRatio: 1.0,
+                            //       enlargeCenterPage: true,
+                            //       viewportFraction: 1.0,
+                            //     ),
+                            //     items: images.map((img) {
+                            //       print(img);
+                            //       return CachedNetworkImage(
+                            //         imageUrl: '$uri${img['url']}',
+                            //         fit: BoxFit.cover,
+                            //         width: 120,
+                            //         placeholder: (context, url) =>
+                            //             Shimmer.fromColors(
+                            //           baseColor: Colors.grey[300]!,
+                            //           highlightColor: Colors.grey[100]!,
+                            //           child: Container(
+                            //             color: Colors.grey[300],
+                            //             width: double.infinity,
+                            //             height: double.infinity,
+                            //           ),
+                            //         ),
+                            //         errorWidget: (context, url, error) =>
+                            //             const Icon(
+                            //           Icons.broken_image,
+                            //           color: Colors.grey,
+                            //           size: 50,
+                            //         ),
+                            //       );
+                            //     }).toList())
+                            // : Shimmer.fromColors(
+                            //     baseColor: Colors.grey[300]!,
+                            //     highlightColor: Colors.grey[100]!,
+                            //     child: Container(
+                            //       color: Colors.grey[300],
+                            //       width: 100,
+                            //       height: 100,
+                            //     ),
+                            //   ),
                           ),
                         ),
                         const SizedBox(width: 12),

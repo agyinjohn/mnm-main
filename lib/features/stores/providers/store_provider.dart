@@ -12,6 +12,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:m_n_m/providers/delivery_address_provider.dart';
 
 import '../stores_api_service.dart';
 
@@ -37,6 +38,8 @@ final locationProvider = FutureProvider<Position>((ref) async {
 });
 
 final storesProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final location = await ref.watch(locationProvider.future);
-  return StoreService().fetchStores(location.longitude, location.latitude);
+  // final location = await ref.watch(locationProvider.future);
+  final deliveryAddress = ref.watch(deliveryAddressProvider);
+  return StoreService()
+      .fetchStores(deliveryAddress!.longitude, deliveryAddress.latitude);
 });

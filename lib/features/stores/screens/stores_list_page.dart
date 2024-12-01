@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m_n_m/features/stores/widgets/store_card.dart';
+import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 
 import '../providers/store_provider.dart';
 import 'store_items_screen.dart';
@@ -60,18 +61,18 @@ class StoreListScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    child: StoreCard(
+                    child: ShopCard(
                       deliveryTime: '10mins delivery',
                       rating: 4.0,
-                      reviewCount: 7,
+                      imageUrl: '',
                       location: 'Adenta',
-                      storeName: store['storeName'],
+                      shopName: store['storeName'],
                     ));
               },
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: NutsActivityIndicator()),
         error: (error, stack) => Center(child: Text("Error: $error")),
       ),
     );

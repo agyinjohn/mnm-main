@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,11 +8,12 @@ import 'package:m_n_m/constants/global_variables.dart';
 import 'package:m_n_m/features/cart/providers/cart_provider.dart';
 import 'package:m_n_m/features/home/screens/categories_page.dart';
 import 'package:m_n_m/features/home/screens/category_deals_screen.dart';
+import 'package:m_n_m/features/home/screens/change_delivery_address.dart';
 import 'package:m_n_m/features/home/screens/error_page.dart';
 import 'package:m_n_m/features/home/screens/favourite_screen.dart';
 import 'package:m_n_m/features/home/screens/profile_page.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:m_n_m/providers/delivery_address_provider.dart';
 import '../../cart/screens/cart_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -73,24 +76,36 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
       setState(() {
         isloading = true;
       });
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        _currentPosition!.latitude,
-        _currentPosition!.longitude,
-      );
 
-      Placemark place = placemarks[0];
-
-      setState(() {
-        // Get the specific address or city
-        _currentAddress = "${place.street}, ${place.locality}";
-        isloading = false;
+      // List<Placemark> placemarks = await placemarkFromCoordinates(
+      //   _currentPosition!.latitude,
+      //   _currentPosition!.longitude,
+      // );
+      await ref
+          .read(deliveryAddressProvider.notifier)
+          .setDeliveryAddress(
+              context: context,
+              latitude: _currentPosition!.latitude,
+              longitude: _currentPosition!.longitude)
+          .timeout(const Duration(seconds: 30), onTimeout: () {
+        throw TimeoutException("Network request timed out");
       });
-      print("Found this code ");
+      // print(placemarks[2]);
+      // Placemark place = placemarks[2];
+      // setState(() {
+      //   isloading = false;
+      // });
+    } on TimeoutException catch (error) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const ErrorPage()));
     } catch (e) {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const ErrorPage()));
     } finally {
-      isloading = false;
+      setState(() {
+        isloading = false;
+      });
+      // isloading = false;
     }
   }
 
@@ -162,7 +177,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onFavouriteTap;
   final String? currentAddress;
@@ -219,15 +234,14 @@ class HomePage extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final deliveryAddress = ref.watch(deliveryAddressProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HomeHeader(
-            currentLocation: currentAddress,
-          ),
+          const HomeHeader(),
           const SizedBox(height: 16),
           const SearchBar(),
           const SizedBox(height: 16),
@@ -273,19 +287,30 @@ class HomePage extends StatelessWidget {
 
 // Home header widget
 class HomeHeader extends ConsumerWidget {
-  const HomeHeader({super.key, required this.currentLocation});
-  final String? currentLocation;
+  const HomeHeader({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
+    final deliveryAddress = ref.watch(deliveryAddressProvider);
     return Row(
       children: [
         const CircleIconButton(icon: Icons.category_outlined),
         const SizedBox(width: 8),
         Expanded(
-          child: LocationInfo(
-            location: currentLocation!,
-            currentLocation: 'Current Location',
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DeliveryAddressPage())),
+            child: LocationInfo(
+              location: deliveryAddress != null
+                  ? "${deliveryAddress.streetName}, ${deliveryAddress.subLocality}"
+                  : "No delivery address set",
+              currentLocation: deliveryAddress != null
+                  ? 'Delivery Address'
+                  : 'Set Delivery Address',
+            ),
           ),
         ),
         const SizedBox(width: 8),

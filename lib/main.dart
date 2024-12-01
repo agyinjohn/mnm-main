@@ -4,7 +4,6 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:m_n_m/constants/global_variables.dart';
 import 'package:m_n_m/features/auth/screens/onboarding_screen.dart';
 import 'package:m_n_m/features/auth/screens/sign_in_screen.dart';
-import 'package:m_n_m/features/auth/services/auth_service.dart';
 import 'package:m_n_m/features/home/screens/home_page.dart';
 import 'package:m_n_m/router.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
