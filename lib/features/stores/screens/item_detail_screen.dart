@@ -92,27 +92,30 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
 
     return Scaffold(
       extendBody: true,
-      appBar: AppBar(title: Text(widget.item['name'])),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if ((widget.item['images'] as List<dynamic>).isNotEmpty)
-                CarouselSlider(
-                  options: CarouselOptions(
-                    autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 10),
-                    height: 200,
-                    viewportFraction: 1.0,
-                    enableInfiniteScroll: true,
-                    autoPlayAnimationDuration:
-                        const Duration(milliseconds: 800),
-                  ),
-                  items: (widget.item['images'] as List<dynamic>)
-                      .map<Widget>((img) {
-                    return Image.network(
+      // appBar: AppBar(
+      //     backgroundColor: Colors.transparent,
+      //     title: Text(widget.item['name'])),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if ((widget.item['images'] as List<dynamic>).isNotEmpty)
+              CarouselSlider(
+                options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 10),
+                  height: 200,
+                  viewportFraction: 1.0,
+                  enableInfiniteScroll: true,
+                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                ),
+                items:
+                    (widget.item['images'] as List<dynamic>).map<Widget>((img) {
+                  return ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10)),
+                    child: Image.network(
                       '$uri${img['url']}',
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -135,145 +138,189 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                           child: const Icon(Icons.broken_image),
                         );
                       },
-                    );
-                  }).toList(),
-                ),
-              // Image.network(
-              //   '$uri${widget.item['images'][0]['url']}',
-              //   height: 150,
-              //   width: double.infinity,
-              //   fit: BoxFit.cover,
-              // ),
-              const SizedBox(height: 16),
-
-              // Item Sizes
-              Text("Select Size:",
-                  style: Theme.of(context).textTheme.titleMedium),
-              ...sizes.map((size) {
-                return RadioListTile<String>(
-                  title: Text("${size['name']} (\$${size['price']})"),
-                  value: size['name'],
-                  groupValue: selectedSize,
-                  onChanged: (value) {
-                    print(value);
-                    setState(() {
-                      selectedSize = value;
-                      selectedSizePrice = size['price'] is String
-                          ? double.parse(size['price'])
-                          : size['price'].toDouble();
-                      selectedSizeId = size["_id"];
-                      // print(selectedSizePrice);
-                    });
-                  },
-                );
-              }),
-              const Divider(),
-
-              // Add-ons with quantity control
-              Text("Add-ons:", style: Theme.of(context).textTheme.titleMedium),
-              ...addOns.map((addOn) {
-                final addOnName = addOn['name'];
-                final addOnPrice = addOn['price'];
-                final addOnQuantity = addOnQuantities[addOnName] ?? 0;
-
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "$addOnName (\$$addOnPrice)",
-                      style: const TextStyle(fontSize: 16),
                     ),
-                    Row(
+                  );
+                }).toList(),
+              ),
+            // Image.network(
+            //   '$uri${widget.item['images'][0]['url']}',
+            //   height: 150,
+            //   width: double.infinity,
+            //   fit: BoxFit.cover,
+            // ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Name", style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 5),
+                  Text(
+                    widget.item['name']
+                        .replaceAll(RegExp(r'\s+'),
+                            ' ') // Replace multiple spaces/newlines with one space
+                        .trim(),
+                    // maxLines: 1,
+                    style: const TextStyle(fontSize: 18),
+                    textAlign: TextAlign.justify,
+                    softWrap:
+                        true, // Ensures the text wraps within the container
+                    overflow: TextOverflow.visible,
+                  ),
+                  const SizedBox(height: 10),
+                  Text("Description",
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 5),
+                  SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        widget.item['description']
+                            .replaceAll(RegExp(r'\s+'),
+                                ' ') // Replace multiple spaces/newlines with one space
+                            .trim(),
+                        // maxLines: 1,
+                        style: const TextStyle(),
+                        textAlign: TextAlign.justify,
+                        softWrap:
+                            true, // Ensures the text wraps within the container
+                        overflow: TextOverflow.visible,
+                      )),
+                  const SizedBox(height: 10),
+                  Text("Select Size(select one):",
+                      style: Theme.of(context).textTheme.titleMedium),
+                  ...sizes.map((size) {
+                    return RadioListTile<String>(
+                      title: Text(
+                          "${size['name']} (GHS${size['price'].toDouble()})"),
+                      value: size['name'],
+                      groupValue: selectedSize,
+                      onChanged: (value) {
+                        print(value);
+                        setState(() {
+                          selectedSize = value;
+                          selectedSizePrice = size['price'] is String
+                              ? double.parse(size['price'])
+                              : size['price'].toDouble();
+                          selectedSizeId = size["_id"];
+                          // print(selectedSizePrice);
+                        });
+                      },
+                    );
+                  }),
+                  const Divider(),
+
+                  // Add-ons with quantity control
+                  Text("Add-ons:",
+                      style: Theme.of(context).textTheme.titleMedium),
+                  ...addOns.map((addOn) {
+                    final addOnName = addOn['name'];
+                    final addOnPrice = addOn['price'];
+                    final addOnQuantity = addOnQuantities[addOnName] ?? 0;
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: addOnQuantity > 0
-                              ? () {
-                                  setState(() {
-                                    addOnQuantities[addOnName] =
-                                        addOnQuantity - 1;
-                                  });
-                                }
-                              : null,
+                        Text(
+                          "$addOnName (GHS${double.tryParse(addOnPrice)})",
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        Text('$addOnQuantity',
-                            style: const TextStyle(fontSize: 16)),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () {
-                            setState(() {
-                              addOnQuantities[addOnName] = addOnQuantity + 1;
-                            });
-                          },
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove),
+                              onPressed: addOnQuantity > 0
+                                  ? () {
+                                      setState(() {
+                                        addOnQuantities[addOnName] =
+                                            addOnQuantity - 1;
+                                      });
+                                    }
+                                  : null,
+                            ),
+                            Text('$addOnQuantity',
+                                style: const TextStyle(fontSize: 16)),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () {
+                                setState(() {
+                                  addOnQuantities[addOnName] =
+                                      addOnQuantity + 1;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
-                );
-              }),
-              const Divider(),
+                    );
+                  }),
+                  const Divider(),
 
-              // Quantity Selector
-              Row(
-                children: [
-                  const Text("Quantity:", style: TextStyle(fontSize: 16)),
-                  IconButton(
-                    icon: const Icon(Icons.remove),
-                    onPressed:
-                        quantity > 1 ? () => setState(() => quantity--) : null,
+                  // Quantity Selector
+                  Row(
+                    children: [
+                      const Text("Quantity:", style: TextStyle(fontSize: 16)),
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: quantity > 1
+                            ? () => setState(() => quantity--)
+                            : null,
+                      ),
+                      Text('$quantity', style: const TextStyle(fontSize: 16)),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () => setState(() => quantity++),
+                      ),
+                    ],
                   ),
-                  Text('$quantity', style: const TextStyle(fontSize: 16)),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () => setState(() => quantity++),
+                  const SizedBox(height: 24),
+
+                  // Total Price Display
+                  Text(
+                    "Total Price: GHS${calculateTotalPrice().toStringAsFixed(2)}",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Add to Cart Button
+                  // CustomButton(
+                  //   title: 'Add to cart',
+                  //   onTap: () => selectedSize != null
+                  //       ? () {
+                  //           // Here, you could add the item with selected options to the cart
+                  //           addToCart();
+                  //         }
+                  //       : null,
+                  // ),
+                  Center(
+                    child: SizedBox(
+                      width: 250,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(5), // Rounded corners
+                          ),
+                        ),
+                        onPressed: selectedSize != null
+                            ? () {
+                                // Here, you could add the item with selected options to the cart
+                                addToCart();
+                              }
+                            : null,
+                        child: isAddingToCart
+                            ? const NutsActivityIndicator()
+                            : const Text("Add to Cart"),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // Total Price Display
-              Text(
-                "Total Price: \$${calculateTotalPrice().toStringAsFixed(2)}",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-
-              // Add to Cart Button
-              // CustomButton(
-              //   title: 'Add to cart',
-              //   onTap: () => selectedSize != null
-              //       ? () {
-              //           // Here, you could add the item with selected options to the cart
-              //           addToCart();
-              //         }
-              //       : null,
-              // ),
-              Center(
-                child: SizedBox(
-                  width: 250,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: AppColors.primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(5), // Rounded corners
-                      ),
-                    ),
-                    onPressed: selectedSize != null
-                        ? () {
-                            // Here, you could add the item with selected options to the cart
-                            addToCart();
-                          }
-                        : null,
-                    child: isAddingToCart
-                        ? const NutsActivityIndicator()
-                        : const Text("Add to Cart"),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            // Item Sizes
+          ],
         ),
       ),
     );

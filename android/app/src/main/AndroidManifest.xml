@@ -1,7 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.INTERNET" />
+
     <application
+           android:usesCleartextTraffic="true"
         android:label="m_n_m"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -22,9 +25,13 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+                      <meta-data
+        android:name="android.webkit.WebView.EnableSafeBrowsing"
+        android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+          
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -104,72 +104,44 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: SizedBox(
-                            height: 100,
-                            width: 100,
-                            child: CachedNetworkImage(
-                              imageUrl: '$uri${images[0]['url']}}',
-                              fit: BoxFit.cover,
+                              height: 130,
                               width: 120,
-                              placeholder: (context, url) => Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Container(
-                                  color: Colors.grey[300],
-                                  width: 120,
-                                  height: 120,
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => const Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                                size: 50,
-                              ),
-                            ),
-                            // child: CarouselSlider(
-                            //     options: CarouselOptions(
-                            //       autoPlay: true,
-                            //       autoPlayInterval: const Duration(
-                            //           seconds: 10), // Delay of 3 seconds
-                            //       autoPlayAnimationDuration:
-                            //           const Duration(seconds: 5),
-                            //       aspectRatio: 1.0,
-                            //       enlargeCenterPage: true,
-                            //       viewportFraction: 1.0,
-                            //     ),
-                            //     items: images.map((img) {
-                            //       print(img);
-                            //       return CachedNetworkImage(
-                            //         imageUrl: '$uri${img['url']}',
-                            //         fit: BoxFit.cover,
-                            //         width: 120,
-                            //         placeholder: (context, url) =>
-                            //             Shimmer.fromColors(
-                            //           baseColor: Colors.grey[300]!,
-                            //           highlightColor: Colors.grey[100]!,
-                            //           child: Container(
-                            //             color: Colors.grey[300],
-                            //             width: double.infinity,
-                            //             height: double.infinity,
-                            //           ),
-                            //         ),
-                            //         errorWidget: (context, url, error) =>
-                            //             const Icon(
-                            //           Icons.broken_image,
-                            //           color: Colors.grey,
-                            //           size: 50,
-                            //         ),
-                            //       );
-                            //     }).toList())
-                            // : Shimmer.fromColors(
-                            //     baseColor: Colors.grey[300]!,
-                            //     highlightColor: Colors.grey[100]!,
-                            //     child: Container(
-                            //       color: Colors.grey[300],
-                            //       width: 100,
-                            //       height: 100,
-                            //     ),
-                            //   ),
-                          ),
+                              child: CarouselSlider(
+                                  options: CarouselOptions(
+                                    autoPlay: true,
+                                    autoPlayInterval: const Duration(
+                                        seconds: 20), // Delay of 3 seconds
+                                    autoPlayAnimationDuration:
+                                        const Duration(seconds: 5),
+                                    aspectRatio: 1.0,
+                                    enlargeCenterPage: true,
+                                    viewportFraction: 1.0,
+                                  ),
+                                  items: images.map((img) {
+                                    // print(img);
+                                    return CachedNetworkImage(
+                                      imageUrl: '$uri${img['url']}',
+                                      fit: BoxFit.cover,
+                                      width: 120,
+                                      height: 200,
+                                      placeholder: (context, url) =>
+                                          Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(
+                                          color: Colors.grey[300],
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey,
+                                        size: 50,
+                                      ),
+                                    );
+                                  }).toList())),
                         ),
                         const SizedBox(width: 12),
                         // Order Details Section
@@ -201,11 +173,34 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Row(
+                                    children: List.generate(
+                                      5,
+                                      (index) => Icon(
+                                        Icons.star,
+                                        size: 16,
+                                        color: index < 4.toInt()
+                                            ? Colors.amber
+                                            : Colors.grey[300],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    4.toStringAsFixed(1),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
                               // Price Display Logic
                               Text(
                                 item['itemSizes'].length == 1
-                                    ? "GHS ${item['itemSizes'][0]['price']}"
-                                    : "GHS ${item['itemSizes'].map((e) => e['price']).reduce((a, b) => a < b ? a : b)} - ${item['itemSizes'].map((e) => e['price']).reduce((a, b) => a > b ? a : b)}",
+                                    ? "GHS ${double.parse(item['itemSizes'][0]['price'].toString()).toStringAsFixed(2)}"
+                                    : "GHS ${item['itemSizes'].map((e) => double.parse(e['price'].toString())).reduce((a, b) => a < b ? a : b).toStringAsFixed(2)} - GHS ${item['itemSizes'].map((e) => double.parse(e['price'].toString())).reduce((a, b) => a > b ? a : b).toStringAsFixed(2)}",
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge

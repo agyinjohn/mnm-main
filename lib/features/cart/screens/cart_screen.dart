@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m_n_m/features/cart/cart_item_model.dart';
 import 'package:m_n_m/features/cart/providers/cart_provider.dart';
 import 'package:m_n_m/order/upload_order.dart';
+import 'package:m_n_m/payment/screens/payment_page.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 import '../../../common/user_id_provider.dart';
 
@@ -223,7 +224,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     );
                   }),
                   ElevatedButton(
-                    onPressed: confirmOrder,
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaystackPaymentPage(),
+                        )),
                     child: isloading
                         ? const NutsActivityIndicator()
                         : const Text("Confirm Order"),
