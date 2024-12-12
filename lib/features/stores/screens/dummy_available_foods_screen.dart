@@ -5,7 +5,9 @@ import 'package:m_n_m/features/stores/screens/item_detail_screen.dart';
 
 import '../../../constants/global_variables.dart';
 import '../../home/screens/categories_page.dart';
+import '../../home/screens/home_page.dart';
 import '../../home/widgets/custom_search_bar.dart';
+import 'dummy_cart_screen.dart';
 import 'dummy_product_detail_screen.dart';
 
 class DummyAvailableFoodsScreen extends StatefulWidget {
@@ -28,6 +30,21 @@ class _DummyAvailableFoodsScreen extends State<DummyAvailableFoodsScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const DummyCartScreen()));
+              },
+              child: const IconWithBadge(
+                  icon: Icons.shopping_basket_outlined, badgeCount: 1),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -189,17 +206,26 @@ class FoodCard extends StatelessWidget {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     SizedBox(width: size.width * 0.042),
-                                    Container(
-                                      width: size.width * 0.14,
-                                      height: size.height * 0.035,
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius:
-                                              BorderRadius.circular(6)),
-                                      child: const Center(
-                                        child: Icon(
-                                            Icons.shopping_basket_outlined,
-                                            color: Colors.white),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const DummyCartScreen()));
+                                      },
+                                      child: Container(
+                                        width: size.width * 0.14,
+                                        height: size.height * 0.035,
+                                        decoration: BoxDecoration(
+                                            color: AppColors.primaryColor,
+                                            borderRadius:
+                                                BorderRadius.circular(6)),
+                                        child: const Center(
+                                          child: Icon(
+                                              Icons.shopping_basket_outlined,
+                                              color: Colors.white),
+                                        ),
                                       ),
                                     )
                                   ]),

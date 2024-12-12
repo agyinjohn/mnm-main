@@ -137,7 +137,7 @@ class _DummyProductDetailPageState extends State<DummyProductDetailPage> {
                       style:
                           TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
-                    _buildQuantityCount(quantity),
+                    buildQuantityCount(quantity),
                   ],
                 ),
                 SizedBox(height: size.height * 0.06),
@@ -149,7 +149,7 @@ class _DummyProductDetailPageState extends State<DummyProductDetailPage> {
         ));
   }
 
-  Widget _buildQuantityCount(int quantity) {
+  Widget buildQuantityCount(int quantity) {
     return Row(
       children: [
         GestureDetector(

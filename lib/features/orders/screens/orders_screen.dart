@@ -116,7 +116,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           }
 
           if (cartState.isEmpty) {
-            return const Center(child: Text("Your cart is empty"));
+            return const Center(child: Text("You have no orders yet"));
           }
 
           return Padding(
