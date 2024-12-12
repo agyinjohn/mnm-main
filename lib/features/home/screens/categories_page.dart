@@ -6,6 +6,7 @@ import 'package:m_n_m/features/stores/screens/stores_list_page.dart';
 
 import '../../../common/category_data.dart';
 import '../widgets/custom_search_bar.dart';
+import '../../stores/screens/dummy_stores_screen.dart';
 import 'selected_category.dart';
 
 class CategoriesPage extends StatelessWidget {
@@ -20,6 +21,7 @@ class CategoriesPage extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(height: size.height * 0.026),
             const Center(
@@ -42,7 +44,7 @@ class CategoriesPage extends StatelessWidget {
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   childAspectRatio: 0.8,
-                  crossAxisCount: 3,
+                  crossAxisCount: 2,
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
@@ -50,17 +52,21 @@ class CategoriesPage extends StatelessWidget {
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => index == 0
-                              ? StoreListScreen(
-                                  categoryName:
-                                      GlobalVariables.categoriesList[index])
-                              : StoreListScreen(
-                                  categoryName:
-                                      GlobalVariables.categoriesList[index]),
-                        ),
-                      );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AvailableStores()));
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => index == 0
+                      //         ? StoreListScreen(
+                      //             categoryName:
+                      //                 GlobalVariables.categoriesList[index])
+                      //         : StoreListScreen(
+                      //             categoryName:
+                      //                 GlobalVariables.categoriesList[index]),
+                      //   ),
+                      // );
                     },
                     child: CategoryCard(
                       title: category.title,

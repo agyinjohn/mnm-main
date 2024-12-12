@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-String uri = 'http://192.168.113.58:8000';
+String uri = 'http://192.168.43.207:8000';
 
 class GlobalVariables {
   // COLORS
@@ -28,10 +28,10 @@ class GlobalVariables {
   ];
 
   static const categoriesList = [
-    'fast food & beverages',
-    'pharmacy',
-    'gift packages',
-    'Gloceries and supermarkets',
+    'Fast Foods & Beverages',
+    'Pharmacy',
+    'Gift Packages',
+    'Groceries and Supermarkets',
   ];
 
   static const List<Map<String, String>> categoryImages = [
@@ -59,30 +59,18 @@ class GlobalVariables {
 }
 
 class AppColors {
-  // Primary and secondary colors
-
   static const Color primaryColor = Color(0xFFFF6633);
   static const Color secondaryColor = Color(0xFFF0F8FF);
   static const Color tertiaryColor = Color(0xFF333333);
 
-  // Text colors
-  static const Color titleColor = Color(
-      0xFF000000); // Black  static const Color bodyTextColor = Color(0xFF333333);
-  static const Color buttonTextColor = Color(0xFFFFFFFF); // White
-  // Button colors  static const Color buttonColor = Color(0xFF6200EE); // Matches primary color
+  static const Color titleColor = Color(0xFF000000);
+  static const Color buttonTextColor = Color(0xFFFFFFFF);
   static const Color buttonHoverColor = Color(0xFFFF7F50);
-  // Background colors  static const Color backgroundColor = Color(0xFFF5F5F5); // Light grey
-  static const Color cardColor = Color(0xFFFFFFFF); // White
-  // Accent colors  static const Color accentColor = Color(0xFFFFC107); // Amber
-  // Additional colors
-  static const Color errorColor = Color(
-      0xFFB00020); // Red  static const Color dividerColor = Color(0xFFBDBDBD); // Grey
-  // Colors for onPrimary and onSecondary surfaces
+  static const Color cardColor = Color.fromARGB(255, 217, 217, 217);
+  // Color(0xFFFFFFFF); // White
+
+  static const Color errorColor = Color(0xFFB00020);
   static const Color onPrimaryColor = Color(0xFFFFFFFF);
 
-  // White  static const Color onSecondaryColor = Color(0xFF000000); // Black
-
   static const Color pageHeaderColor = Color(0xB9B9B9B9);
-
-  // Text colors
 }

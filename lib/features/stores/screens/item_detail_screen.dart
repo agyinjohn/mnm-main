@@ -9,7 +9,7 @@ import 'package:m_n_m/constants/global_variables.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../cart/providers/cart_provider.dart';
+import '../../orders/providers/cart_provider.dart';
 
 class ItemDetailScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> item;

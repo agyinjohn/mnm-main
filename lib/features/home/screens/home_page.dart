@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconly/iconly.dart';
 import 'package:m_n_m/common/widgets/loading_schema.dart';
 import 'package:m_n_m/constants/global_variables.dart';
-import 'package:m_n_m/features/cart/providers/cart_provider.dart';
+import 'package:m_n_m/features/orders/providers/cart_provider.dart';
 import 'package:m_n_m/features/home/screens/categories_page.dart';
 import 'package:m_n_m/features/home/screens/category_deals_screen.dart';
 import 'package:m_n_m/features/home/screens/change_delivery_address.dart';
@@ -14,7 +15,7 @@ import 'package:m_n_m/features/home/screens/favourite_screen.dart';
 import 'package:m_n_m/features/home/screens/profile_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:m_n_m/providers/delivery_address_provider.dart';
-import '../../cart/screens/cart_screen.dart';
+import '../../orders/screens/orders_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -119,16 +120,15 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     final cart = ref.watch(cartProvider);
     final List<Widget> bottomNavigationBarScreens = [
       HomePage(
         currentAddress: _currentAddress,
         onCategoryTap: () => _onItemTapped(1), // Navigate to Categories
-        onFavouriteTap: () => _onItemTapped(2), // Navigate to Favourites
       ),
       const CategoriesPage(),
-      const FavouritesPage(),
-      const CartScreen(),
+      const OrdersScreen(),
       const ProfilePage(),
     ];
 
@@ -156,16 +156,12 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.category_outlined),
+                  icon: Icon(Icons.subject),
                   label: 'Categories',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.shopping_cart),
-                  label: 'Cart',
+                  icon: Icon(IconlyLight.paper),
+                  label: 'Orders',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.account_circle),
@@ -179,12 +175,12 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
 
 class HomePage extends ConsumerWidget {
   final VoidCallback onCategoryTap;
-  final VoidCallback onFavouriteTap;
+  // final VoidCallback onFavouriteTap;
   final String? currentAddress;
   HomePage(
       {super.key,
       required this.onCategoryTap,
-      required this.onFavouriteTap,
+      // required this.onFavouriteTap,
       required this.currentAddress,
       required});
 
@@ -235,6 +231,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final size = MediaQuery.of(context).size;
     final deliveryAddress = ref.watch(deliveryAddressProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
@@ -270,13 +267,30 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: 12),
           CategoryList(categories: categories),
           const SizedBox(height: 16),
-          SectionHeader(
-            title: 'Favourites',
-            icon: const Icon(Icons.star_outline_outlined),
-            onViewAllTap: onFavouriteTap,
+          const Row(
+            children: [
+              Icon(Icons.event_available_outlined),
+              SizedBox(width: 6),
+              Text(
+                'Upcoming Events',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          FavouriteList(favourites: favourites),
+          Container(
+            decoration: BoxDecoration(
+                color: Colors.red, borderRadius: BorderRadius.circular(6)),
+            width: double.infinity,
+            height: size.height * 0.25,
+            child: const Center(
+              child: Text(
+                'UpComing Events Here!',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          )
+          // FavouriteList(favourites: favourites),
         ],
       ),
     );
@@ -291,11 +305,15 @@ class HomeHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final size = MediaQuery.of(context).size;
     final cart = ref.watch(cartProvider);
     final deliveryAddress = ref.watch(deliveryAddressProvider);
     return Row(
       children: [
-        const CircleIconButton(icon: Icons.category_outlined),
+        CircleAvatar(
+          radius: size.width * 0.06,
+          backgroundImage: const AssetImage('assets/images/profile-pic.png'),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: GestureDetector(
@@ -314,15 +332,18 @@ class HomeHeader extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const CartScreen()));
-          },
-          child: IconWithBadge(
-              icon: Icons.shopping_cart_outlined, badgeCount: cart.length),
-        ),
-        const SizedBox(width: 8),
+
+        // Cart Button
+
+        // GestureDetector(
+        //   onTap: () {
+        //     Navigator.push(context,
+        //         MaterialPageRoute(builder: (context) => const OrdersScreen()));
+        //   },
+        //   child: IconWithBadge(
+        //       icon: Icons.shopping_cart_outlined, badgeCount: cart.length),
+        // ),
+        // const SizedBox(width: 8),
         const IconWithBadge(
             icon: Icons.notifications_none_outlined, badgeCount: 1),
       ],
@@ -573,50 +594,56 @@ class _CategoryListState extends State<CategoryList> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: widget.categories.map((category) {
-        return GestureDetector(
-          onTap: () {
-            navigateToCategoryPage(context, category.title);
-          },
-          child: CategoryCard(
-            title: category.title,
-            imagePath: category.imagePath,
-          ),
-        );
-      }).toList(),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: widget.categories.map((category) {
+          return GestureDetector(
+            onTap: () {
+              navigateToCategoryPage(context, category.title);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: CategoryCard(
+                title: category.title,
+                imagePath: category.imagePath,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
 
 // Favourite list widget
-class FavouriteList extends StatelessWidget {
-  final List<Favourite> favourites;
+// class FavouriteList extends StatelessWidget {
+//   final List<Favourite> favourites;
 
-  const FavouriteList({super.key, required this.favourites});
+//   const FavouriteList({super.key, required this.favourites});
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 160,
-      width: double.infinity,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: favourites.length,
-        itemBuilder: (context, index) {
-          return FavouriteCard(
-            title: favourites[index].title,
-            vendor: favourites[index].vendor,
-            price: favourites[index].price,
-            rating: favourites[index].rating,
-            image: favourites[index].image,
-          );
-        },
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return SizedBox(
+//       height: 160,
+//       width: double.infinity,
+//       child: ListView.builder(
+//         scrollDirection: Axis.horizontal,
+//         itemCount: favourites.length,
+//         itemBuilder: (context, index) {
+//           return FavouriteCard(
+//             title: favourites[index].title,
+//             vendor: favourites[index].vendor,
+//             price: favourites[index].price,
+//             rating: favourites[index].rating,
+//             image: favourites[index].image,
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }
 
 class CategoryCard extends StatelessWidget {
   final String title;
@@ -629,8 +656,8 @@ class CategoryCard extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 78,
-          height: 86,
+          width: 135,
+          height: 150,
           decoration: BoxDecoration(
             image: DecorationImage(image: AssetImage(imagePath)),
             color: Colors.white,

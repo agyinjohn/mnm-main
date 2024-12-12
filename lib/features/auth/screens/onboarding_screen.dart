@@ -3,6 +3,7 @@ import 'package:m_n_m/features/auth/screens/sign_up_screen.dart';
 import '../../../common/onboarding_items.dart';
 import '../../../common/widgets/custom_button_2.dart';
 import '../../../constants/global_variables.dart';
+import '../../home/screens/home_page.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -165,7 +166,9 @@ class OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildNavigationButtons() {
     if (_currentPage == onboardingData.length - 1) {
       return CustomButton(
-        onTap: (() => Navigator.pushNamed(context, SignUpScreen.routeName)),
+        onTap: (() => Navigator.pushNamed(context, SignUpScreen.routeName
+            // HomeScreen.routeName
+            )),
         title: 'Get Started',
       );
     }

@@ -32,14 +32,10 @@ final List<Category> topCategories = [
 
 final List<Category> categories = [
   Category(
-    title: 'Foods',
+    title: 'Fast Foods & Beverages',
     imagePath: 'assets/images/cat-food.jpg',
     subCategories: foodList,
   ),
-  Category(
-      title: 'Groceries',
-      imagePath: 'assets/images/cat-vegs.jpg',
-      subCategories: []),
   Category(
       title: 'Drugs',
       imagePath: 'assets/images/cat-meds.jpg',
@@ -49,23 +45,27 @@ final List<Category> categories = [
       imagePath: 'assets/images/cat-bev.jpg',
       subCategories: []),
   Category(
-      title: 'Phones',
-      imagePath: 'assets/images/phones.jpg',
+      title: 'Groceries',
+      imagePath: 'assets/images/cat-vegs.jpg',
       subCategories: []),
-  Category(
-      title: 'Laptops',
-      imagePath: 'assets/images/laptops.jpg',
-      subCategories: []),
-  Category(
-      title: 'Cosmetics',
-      imagePath: 'assets/images/cosmetics.jpg',
-      subCategories: []),
-  Category(
-      title: 'Clothing',
-      imagePath: 'assets/images/clothings.jpg',
-      subCategories: []),
-  Category(
-      title: 'Pets', imagePath: 'assets/images/pets.jpg', subCategories: []),
+  // Category(
+  //     title: 'Phones',
+  //     imagePath: 'assets/images/phones.jpg',
+  //     subCategories: []),
+  // Category(
+  //     title: 'Laptops',
+  //     imagePath: 'assets/images/laptops.jpg',
+  //     subCategories: []),
+  // Category(
+  //     title: 'Cosmetics',
+  //     imagePath: 'assets/images/cosmetics.jpg',
+  //     subCategories: []),
+  // Category(
+  //     title: 'Clothing',
+  //     imagePath: 'assets/images/clothings.jpg',
+  //     subCategories: []),
+  // Category(
+  //     title: 'Pets', imagePath: 'assets/images/pets.jpg', subCategories: []),
 ];
 
 List<FoodCard> foodList = [
