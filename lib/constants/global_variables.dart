@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-String uri = 'http://192.168.43.207:8000';
+String uri = 'http://192.168.42.40:8000';
 
 class GlobalVariables {
   // COLORS
@@ -62,6 +62,7 @@ class AppColors {
   static const Color primaryColor = Color(0xFFFF6633);
   static const Color secondaryColor = Color(0xFFF0F8FF);
   static const Color tertiaryColor = Color(0xFF333333);
+  static const Color backgroundColor = Color.fromARGB(255, 242, 241, 241);
 
   static const Color titleColor = Color(0xFF000000);
   static const Color buttonTextColor = Color(0xFFFFFFFF);

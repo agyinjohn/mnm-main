@@ -4,15 +4,17 @@ import 'package:iconly/iconly.dart';
 import 'package:m_n_m/features/stores/screens/item_detail_screen.dart';
 
 import '../../../constants/global_variables.dart';
+import 'dummy_available_foods_screen.dart';
+import 'dummy_product_detail_screen.dart';
 
-class AvailableStores extends StatefulWidget {
-  const AvailableStores({super.key});
+class DummyAvailableStores extends StatefulWidget {
+  const DummyAvailableStores({super.key});
 
   @override
-  State<AvailableStores> createState() => _AvailableStoresState();
+  State<DummyAvailableStores> createState() => _DummyAvailableStoresState();
 }
 
-class _AvailableStoresState extends State<AvailableStores> {
+class _DummyAvailableStoresState extends State<DummyAvailableStores> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -107,11 +109,7 @@ class StoreCard extends StatelessWidget {
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ItemDetailScreen(
-                item: item,
-                storeId: storeId,
-              ),
-            ));
+                builder: (context) => const DummyAvailableFoodsScreen()));
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
@@ -134,7 +132,6 @@ class StoreCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                           child: Image.asset(
                             imageUrl,
-                            // 'assets/images/kfc 2.png',
                             width: size.width * 0.3,
                             height: size.width * 0.3,
                             fit: BoxFit.cover,

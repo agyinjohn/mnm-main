@@ -54,7 +54,8 @@ class CategoriesPage extends StatelessWidget {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const AvailableStores()));
+                              builder: (context) =>
+                                  const DummyAvailableStores()));
                       // Navigator.push(
                       //   context,
                       //   MaterialPageRoute(
