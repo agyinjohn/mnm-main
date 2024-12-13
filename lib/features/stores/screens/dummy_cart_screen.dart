@@ -7,7 +7,10 @@ import 'package:m_n_m/common/widgets/custom_button_2.dart';
 import '../../../constants/global_variables.dart';
 // import '../../home/screens/categories_page.dart';
 // import '../../home/widgets/custom_search_bar.dart';
+import '../../../models/order.dart';
+import '../../../models/product.dart';
 import '../../home/screens/home_page.dart';
+import 'dummy_checkout_screen.dart';
 import 'dummy_product_detail_screen.dart';
 
 class DummyCartScreen extends StatefulWidget {
@@ -61,13 +64,59 @@ class _DummyCartScreen extends State<DummyCartScreen> {
                           'Classic Fried Chicken Meal Combo with Coca Cola',
                       storeName: 'KFC (Kentucky Fried Chicken)',
                     ),
+                    CartCard(
+                      imageUrl: 'assets/images/kfc 2.png',
+                      newAmount: 40.00,
+                      foodName:
+                          'Classic Fried Chicken Meal Combo with Coca Cola',
+                      storeName: 'KFC (Kentucky Fried Chicken)',
+                    ),
+                    CartCard(
+                      imageUrl: 'assets/images/kfc 2.png',
+                      newAmount: 40.00,
+                      foodName:
+                          'Classic Fried Chicken Meal Combo with Coca Cola',
+                      storeName: 'KFC (Kentucky Fried Chicken)',
+                    ),
                   ],
                 ),
               ),
             ),
             CustomButton(
-              onTap: () {},
-              title: 'Check out',
+              onTap: () {
+                // Dummy order data
+                final order = Order(
+                  id: '1',
+                  products: [
+                    Product(
+                        name: 'Product 1',
+                        description: 'Description 1',
+                        quantity: 1.0,
+                        images: ['https://via.placeholder.com/150'],
+                        category: 'Category 1',
+                        price: 10.0),
+                    Product(
+                        name: 'Product 2',
+                        description: 'Description 2',
+                        quantity: 2.0,
+                        images: ['https://via.placeholder.com/150'],
+                        category: 'Category 2',
+                        price: 20.0),
+                  ],
+                  quantity: [2, 3],
+                  address: '123 Sample Street',
+                  userId: 'user123',
+                  orderedAt: DateTime.now().millisecondsSinceEpoch,
+                  status: 1,
+                  totalPrice: 99.99,
+                );
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            DummyCheckoutScreen(order: order)));
+              },
+              title: 'Check out order',
             ),
           ],
         ),
@@ -93,100 +142,92 @@ class CartCard extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final theme = Theme.of(context).textTheme;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const DummyProductDetailPage()));
-      },
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(bottom: size.height * 0.004),
-              child: Container(
-                height: size.width * 0.30,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  color: AppColors.cardColor,
-                ),
-                width: double.infinity,
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.asset(
-                            imageUrl,
-                            // 'assets/images/kfc 2.png',
-                            width: size.width * 0.3,
-                            height: size.width * 0.3,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-
-                        // const SizedBox(width: 0.238),
-
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: size.width * 0.5,
-                                child: Text(
-                                  foodName,
-                                  style: theme.bodyLarge
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(height: size.height * 0.004),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.business,
-                                    size: 16,
-                                  ),
-                                  SizedBox(width: size.width * 0.014),
-                                  Text(
-                                    storeName,
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: size.height * 0.004),
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '¢${newAmount.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                          color: AppColors.primaryColor,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    SizedBox(width: size.width * 0.044),
-                                    _buildQuantityCount(),
-                                  ]),
-                            ],
-                          ),
-                        )
-                        //
-                      ],
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: size.height * 0.004),
+            child: Container(
+              height: size.width * 0.30,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: AppColors.cardColor,
               ),
-            )
-          ],
-        ),
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.asset(
+                          imageUrl,
+                          // 'assets/images/kfc 2.png',
+                          width: size.width * 0.3,
+                          height: size.width * 0.3,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+
+                      // const SizedBox(width: 0.238),
+
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: size.width * 0.5,
+                              child: Text(
+                                foodName,
+                                style: theme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.004),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.business,
+                                  size: 16,
+                                ),
+                                SizedBox(width: size.width * 0.014),
+                                Text(
+                                  storeName,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: size.height * 0.004),
+                            Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '¢${newAmount.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(width: size.width * 0.044),
+                                  _buildQuantityCount(),
+                                ]),
+                          ],
+                        ),
+                      )
+                      //
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

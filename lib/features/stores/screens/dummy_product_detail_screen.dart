@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:iconly/iconly.dart';
 import 'package:m_n_m/features/stores/screens/dummy_stores_screen.dart';
 
 import '../../../constants/global_variables.dart';
+import 'dummy_cart_screen.dart';
 
 class DummyProductDetailPage extends StatefulWidget {
   const DummyProductDetailPage({super.key});
@@ -141,7 +143,12 @@ class _DummyProductDetailPageState extends State<DummyProductDetailPage> {
                   ],
                 ),
                 SizedBox(height: size.height * 0.06),
-                _buildButton(context, () {}, 'Add to cart'),
+                _buildButton(context, () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const DummyCartScreen()));
+                }, 'Add to cart'),
                 SizedBox(height: size.height * 0.01),
               ],
             ),
@@ -244,6 +251,29 @@ class _DummyProductDetailPageState extends State<DummyProductDetailPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class StarRating extends StatelessWidget {
+  final double rating;
+  const StarRating({required this.rating});
+  @override
+  Widget build(BuildContext context) {
+    return RatingBar.builder(
+      initialRating: rating,
+      minRating: 1,
+      direction: Axis.horizontal,
+      allowHalfRating: true,
+      itemCount: 5,
+      itemSize: 20.0,
+      itemBuilder: (context, _) => const Icon(
+        IconlyBold.star,
+        color: Colors.amber,
+      ),
+      onRatingUpdate: (rating) {
+        // print(rating);
+      },
     );
   }
 }

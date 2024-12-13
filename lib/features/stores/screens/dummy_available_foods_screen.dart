@@ -19,6 +19,19 @@ class DummyAvailableFoodsScreen extends StatefulWidget {
 }
 
 class _DummyAvailableFoodsScreen extends State<DummyAvailableFoodsScreen> {
+  bool isInCart = false;
+
+  void addToCart(BuildContext context) {
+    setState(() {
+      isInCart != isInCart;
+    });
+    const snackBar = SnackBar(
+      content: Text('Item has been added to cart'),
+      duration: Duration(seconds: 3),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -52,33 +65,37 @@ class _DummyAvailableFoodsScreen extends State<DummyAvailableFoodsScreen> {
             child: Column(
               children: [
                 _buildSearchBox(),
-                const FoodCard(
+                FoodCard(
                   imageUrl: 'assets/images/kfc 2.png',
                   oldAmount: 50.00,
                   newAmount: 40.00,
                   foodName: 'Classic Fried Chicken Meal Combo with Coca Cola',
                   storeName: 'KFC (Kentucky Fried Chicken)',
+                  addToCart: () => addToCart(context),
                 ),
-                const FoodCard(
+                FoodCard(
                   imageUrl: 'assets/images/kfc 2.png',
                   oldAmount: 50.00,
                   newAmount: 40.00,
                   foodName: 'Classic Fried Chicken Meal Combo with Coca Cola',
                   storeName: 'KFC (Kentucky Fried Chicken)',
+                  addToCart: () => addToCart(context),
                 ),
-                const FoodCard(
+                FoodCard(
                   imageUrl: 'assets/images/kfc 2.png',
                   oldAmount: 50.00,
                   newAmount: 40.00,
                   foodName: 'Classic Fried Chicken Meal Combo with Coca Cola',
                   storeName: 'KFC (Kentucky Fried Chicken)',
+                  addToCart: () => addToCart(context),
                 ),
-                const FoodCard(
+                FoodCard(
                   imageUrl: 'assets/images/kfc 2.png',
                   oldAmount: 50.00,
                   newAmount: 40.00,
                   foodName: 'Classic Fried Chicken Meal Combo with Coca Cola',
                   storeName: 'KFC (Kentucky Fried Chicken)',
+                  addToCart: () => addToCart(context),
                 ),
               ],
             )),
@@ -90,45 +107,49 @@ class _DummyAvailableFoodsScreen extends State<DummyAvailableFoodsScreen> {
 class FoodCard extends StatelessWidget {
   final String foodName, storeName, imageUrl;
   final double newAmount, oldAmount;
+  final VoidCallback addToCart;
+
   const FoodCard(
       {super.key,
       required this.foodName,
       required this.storeName,
       required this.imageUrl,
       required this.newAmount,
-      required this.oldAmount});
+      required this.oldAmount,
+      required this.addToCart});
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final theme = Theme.of(context).textTheme;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const DummyProductDetailPage()));
-      },
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(bottom: size.height * 0.004),
-              child: Container(
-                height: size.width * 0.36,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  color: AppColors.cardColor,
-                ),
-                width: double.infinity,
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: size.height * 0.004),
+            child: Container(
+              height: size.width * 0.36,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: AppColors.cardColor,
+              ),
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const DummyProductDetailPage()));
+                        },
+                        child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: Image.asset(
                             imageUrl,
@@ -138,109 +159,100 @@ class FoodCard extends StatelessWidget {
                             fit: BoxFit.cover,
                           ),
                         ),
+                      ),
 
-                        // const SizedBox(width: 0.238),
+                      // const SizedBox(width: 0.238),
 
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: size.width * 0.5,
-                                child: Text(
-                                  foodName,
-                                  style: theme.bodyLarge
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: size.width * 0.5,
+                              child: Text(
+                                foodName,
+                                style: theme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(height: size.height * 0.006),
+                            Row(
+                              children: [
+                                const Text(
+                                  'Rating:  ',
+                                  style: TextStyle(fontSize: 12),
                                 ),
-                              ),
-                              SizedBox(height: size.height * 0.006),
-                              Row(
+                                const StarRating(rating: 4.0),
+                                SizedBox(width: size.width * 0.03),
+                                const Text('4.0',
+                                    style: TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                            SizedBox(height: size.height * 0.008),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.business,
+                                  size: 16,
+                                ),
+                                SizedBox(width: size.width * 0.014),
+                                Text(
+                                  storeName,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: size.height * 0.008),
+                            Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
-                                    'Rating:  ',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  const StarRating(rating: 4.0),
-                                  SizedBox(width: size.width * 0.03),
-                                  const Text('4.0',
-                                      style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                              SizedBox(height: size.height * 0.008),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.business,
-                                    size: 16,
-                                  ),
-                                  SizedBox(width: size.width * 0.014),
                                   Text(
-                                    storeName,
-                                    style: const TextStyle(fontSize: 12),
+                                    '¢${oldAmount.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        decoration: TextDecoration.lineThrough),
                                   ),
-                                ],
-                              ),
-                              SizedBox(height: size.height * 0.008),
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  // crossAxisAlignment:
-                                  // CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(
-                                      '¢${oldAmount.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          decoration:
-                                              TextDecoration.lineThrough),
-                                    ),
-                                    SizedBox(width: size.width * 0.012),
-                                    Text(
-                                      '¢${newAmount.toStringAsFixed(2)}',
-                                      style: const TextStyle(
+                                  SizedBox(width: size.width * 0.012),
+                                  Text(
+                                    '¢${newAmount.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(width: size.width * 0.042),
+                                  GestureDetector(
+                                    onTap: addToCart,
+                                    child: Container(
+                                      width: size.width * 0.14,
+                                      height: size.height * 0.035,
+                                      decoration: BoxDecoration(
                                           color: AppColors.primaryColor,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    SizedBox(width: size.width * 0.042),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const DummyCartScreen()));
-                                      },
-                                      child: Container(
-                                        width: size.width * 0.14,
-                                        height: size.height * 0.035,
-                                        decoration: BoxDecoration(
-                                            color: AppColors.primaryColor,
-                                            borderRadius:
-                                                BorderRadius.circular(6)),
-                                        child: const Center(
-                                          child: Icon(
-                                              Icons.shopping_basket_outlined,
-                                              color: Colors.white),
-                                        ),
+                                          borderRadius:
+                                              BorderRadius.circular(6)),
+                                      child: const Center(
+                                        child: Icon(
+                                            Icons.shopping_basket_outlined,
+                                            color: Colors.white),
                                       ),
-                                    )
-                                  ]),
-                            ],
-                          ),
-                        )
-                        //
-                      ],
-                    ),
-                  ],
-                ),
+                                    ),
+                                  )
+                                ]),
+                          ],
+                        ),
+                      )
+                      //
+                    ],
+                  ),
+                ],
               ),
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }
