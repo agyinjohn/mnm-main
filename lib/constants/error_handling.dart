@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:m_n_m/constants/utils.dart';
+import 'package:m_n_m/features/home/widgets/show_custom_snacbar.dart';
 
 void httpErrorHandle({
   required http.Response response,
@@ -14,12 +15,21 @@ void httpErrorHandle({
       onSuccess();
       break;
     case 400:
-      showSnackBar(context, jsonDecode(response.body)['msg']);
+      showCustomSnackbar(
+          context: context,
+          message: jsonDecode(response.body)['message'],
+          duration: const Duration(seconds: 10));
       break;
     case 500:
-      showSnackBar(context, jsonDecode(response.body)['error']);
+      showCustomSnackbar(
+          context: context,
+          message: jsonDecode(response.body)['error'],
+          duration: const Duration(seconds: 10));
       break;
     default:
-      showSnackBar(context, response.body);
+      showCustomSnackbar(
+          context: context,
+          message: response.body,
+          duration: const Duration(seconds: 10));
   }
 }

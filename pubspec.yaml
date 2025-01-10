@@ -59,6 +59,10 @@ dependencies:
   cached_network_image: ^3.4.1
   webview_flutter: ^4.8.0
   flutter_inappwebview: ^6.1.5
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  timeago: ^3.2.2
+  url_launcher: ^6.3.1
   # charts_flutter:
 dev_dependencies:
   flutter_test:

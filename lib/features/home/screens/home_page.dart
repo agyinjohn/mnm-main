@@ -15,6 +15,7 @@ import 'package:m_n_m/features/home/screens/profile_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:m_n_m/providers/delivery_address_provider.dart';
 import '../../cart/screens/cart_screen.dart';
+import '../../stores/widgets/custom_drawer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +25,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class HomeScreenState extends ConsumerState<HomeScreen> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   String? _currentAddress;
   Position? _currentPosition;
   bool isloading = false;
@@ -122,17 +124,19 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
     final cart = ref.watch(cartProvider);
     final List<Widget> bottomNavigationBarScreens = [
       HomePage(
+        scaffoldKey: scaffoldKey,
         currentAddress: _currentAddress,
         onCategoryTap: () => _onItemTapped(1), // Navigate to Categories
         onFavouriteTap: () => _onItemTapped(2), // Navigate to Favourites
       ),
       const CategoriesPage(),
-      const FavouritesPage(),
-      const CartScreen(),
+      const OrderListPage(),
       const ProfilePage(),
     ];
 
     return Scaffold(
+      key: scaffoldKey,
+      drawer: const CustomDrawer(),
       body: isloading
           ? const Center(child: HomeLoadingShimmer())
           : SafeArea(
@@ -160,12 +164,8 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                   label: 'Categories',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
-                ),
-                BottomNavigationBarItem(
                   icon: Icon(Icons.shopping_cart),
-                  label: 'Cart',
+                  label: 'Orders',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.account_circle),
@@ -181,11 +181,13 @@ class HomePage extends ConsumerWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onFavouriteTap;
   final String? currentAddress;
+  final GlobalKey<ScaffoldState> scaffoldKey;
   HomePage(
       {super.key,
       required this.onCategoryTap,
       required this.onFavouriteTap,
       required this.currentAddress,
+      required this.scaffoldKey,
       required});
 
   final List<Category> categories = [
@@ -217,19 +219,19 @@ class HomePage extends ConsumerWidget {
       'overlayColor': Colors.green.withOpacity(0.88),
       'title': 'Explore Popular Categories',
       'content':
-          'Discover the most popular categories \nand find what you need in just a few taps. \nFrom delicious meals to daily essentials, we\'ve got you covered.',
+          'Discover the most popular categories \nand find what you need in just a few taps. \nFrom delicious meals to daily essentials, we\'ve got \nyou covered.',
     },
     {
       'overlayColor': Colors.grey[900]!.withOpacity(0.88),
       'title': 'Exclusive Offers Just For You',
       'content':
-          'Save big with our exclusive offers! \nCheck out the latest deals and discounts available only for a limited time. \nDon\'t miss out!',
+          'Save big with our exclusive offers! \nCheck out the latest deals and discounts available \nonly for a limited time. \nDon\'t miss out!',
     },
     {
       'overlayColor': Colors.red.withOpacity(0.88),
       'title': 'Safe and Fast Delivery',
       'content':
-          'Enjoy safe and fast delivery right to your doorstep. \nOur delivery partners follow strict safety protocols to ensure your order arrives safely and quickly.',
+          'Enjoy safe and fast delivery right to your \n doorstep. \nOur delivery partners follow strict safety protocols \nto ensure your order arrives \nsafely and quickly.',
     },
   ];
 
@@ -241,10 +243,12 @@ class HomePage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const HomeHeader(),
+          HomeHeader(
+            scaffoldKey: scaffoldKey,
+          ),
           const SizedBox(height: 16),
-          const SearchBar(),
-          const SizedBox(height: 16),
+          // const SearchBar(),
+          // const SizedBox(height: 16),
           CarouselSlider.builder(
             itemCount: homeBannerItems.length,
             itemBuilder: (context, index, realIndex) {
@@ -263,12 +267,13 @@ class HomePage extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SectionHeader(
-            title: 'Categories',
+            title: 'Top Categories',
             icon: const Icon(Icons.category_outlined),
             onViewAllTap: onCategoryTap,
           ),
           const SizedBox(height: 12),
           CategoryList(categories: categories),
+          const SizedBox(height: 16),
           const SizedBox(height: 16),
           SectionHeader(
             title: 'Favourites',
@@ -287,7 +292,11 @@ class HomePage extends ConsumerWidget {
 
 // Home header widget
 class HomeHeader extends ConsumerWidget {
-  const HomeHeader({super.key});
+  const HomeHeader({
+    super.key,
+    required this.scaffoldKey,
+  });
+  final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -295,7 +304,12 @@ class HomeHeader extends ConsumerWidget {
     final deliveryAddress = ref.watch(deliveryAddressProvider);
     return Row(
       children: [
-        const CircleIconButton(icon: Icons.category_outlined),
+        GestureDetector(
+            onTap: () {
+              print('taopppp');
+              scaffoldKey.currentState?.openDrawer();
+            },
+            child: const CircleIconButton(icon: Icons.category_outlined)),
         const SizedBox(width: 8),
         Expanded(
           child: GestureDetector(
@@ -312,15 +326,6 @@ class HomeHeader extends ConsumerWidget {
                   : 'Set Delivery Address',
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const CartScreen()));
-          },
-          child: IconWithBadge(
-              icon: Icons.shopping_cart_outlined, badgeCount: cart.length),
         ),
         const SizedBox(width: 8),
         const IconWithBadge(
@@ -373,20 +378,29 @@ class LocationInfo extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Icon(Icons.location_on_outlined, size: 20),
                 const SizedBox(width: 4),
-                Text(
-                  currentLocation,
-                  style: const TextStyle(fontSize: 10),
+                Center(
+                  child: Text(
+                    currentLocation,
+                    style: const TextStyle(
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        Text(
-          location,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        Center(
+          child: Text(
+            location,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );
@@ -463,6 +477,7 @@ class BannerCard extends StatelessWidget {
         height: 165,
         width: double.infinity,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             Image.asset(
               'assets/images/card-pattern.jpg',
@@ -501,6 +516,60 @@ class BannerCard extends StatelessWidget {
                 ],
               ),
             ),
+            Positioned(
+              top: 10, // Move image upwards outside the container
+              right: -3,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/s.png',
+                        height: 50,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(
+                        width: 25,
+                      ),
+                      Image.asset(
+                        'assets/images/neak.png',
+                        height: 50,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/wa.png',
+                        height: 50,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/v.png',
+                        height: 50,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(
+                        width: 50,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Image.asset(
+                          'assets/images/lotion.png',
+                          height: 70,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
           ],
         ),
       ),

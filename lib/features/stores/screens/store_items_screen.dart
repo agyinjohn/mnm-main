@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:m_n_m/constants/global_variables.dart';
+import 'package:m_n_m/features/cart/screens/shop_cart.dart';
 import 'item_detail_screen.dart'; // Import your item detail screen
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -45,6 +46,17 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ShopCart(storeId: widget.storeId)));
+                },
+                icon: const Icon(Icons.shopping_cart))
+          ],
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.arrow_back_ios)),

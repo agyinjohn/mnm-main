@@ -28,6 +28,7 @@ class StoreListScreen extends ConsumerWidget {
       ),
       body: storesAsyncValue.when(
         data: (storeCategories) {
+          print(storeCategories);
           // Find the category that matches `categoryName`
           final category = storeCategories.firstWhere(
             (cat) => cat['category'] == categoryName,
@@ -41,7 +42,7 @@ class StoreListScreen extends ConsumerWidget {
           }
 
           final stores = category['stores'] as List<dynamic>;
-
+          print(stores);
           return Padding(
             padding: const EdgeInsets.all(10.0),
             child: ListView.builder(
@@ -62,10 +63,10 @@ class StoreListScreen extends ConsumerWidget {
                       );
                     },
                     child: ShopCard(
-                      deliveryTime: '10mins delivery',
+                      deliveryTime: '${store['deliveryTime']} mins delivery',
                       rating: 4.0,
                       imageUrl: '',
-                      location: 'Adenta',
+                      location: store['storeAddress'],
                       shopName: store['storeName'],
                     ));
               },

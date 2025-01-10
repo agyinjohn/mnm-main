@@ -1,10 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:m_n_m/features/home/screens/home_page.dart';
+import 'package:m_n_m/features/home/widgets/show_custom_snacbar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../constants/error_handling.dart';
@@ -42,20 +45,19 @@ class AuthService {
         },
       );
       final int statusCode = res.statusCode;
-      print(res.body);
-      print(statusCode);
+      // print(res.body);
+      // print(statusCode);
       if (statusCode == 400) {
         // Handle specific error case when user already exists
         final responseBody = jsonDecode(res.body);
-        print(responseBody['msg']);
+        print(responseBody['message']);
         final message = responseBody['msg'];
         if (responseBody['msg'] == 'User with the same email already exists!') {
           response = false;
           showSnackBar(context, message);
         } else {
           // Handle other validation errors
-          final errorMessage =
-              responseBody['errors']?[0]['msg'] ?? 'Unknown error';
+          final errorMessage = responseBody['message'] ?? 'Unknown error';
           showSnackBar(context, errorMessage);
         }
       } else if (statusCode == 201) {
@@ -92,6 +94,13 @@ class AuthService {
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
+      ).timeout(
+        const Duration(
+          seconds: 20,
+        ),
+        onTimeout: () {
+          throw TimeoutException('Server response timeout');
+        },
       );
       print(jsonDecode(res.body));
       httpErrorHandle(
@@ -111,10 +120,15 @@ class AuthService {
           );
         },
       );
+    } on SocketException catch (s) {
+      showCustomSnackbar(context: context, message: 'Could not connect server');
+    } on TimeoutException catch (t) {
+      showCustomSnackbar(context: context, message: t.message.toString());
     } catch (e) {
       // ignore: use_build_context_synchronously
       print(e);
-      showSnackBar(context, e.toString());
+      // showSnackBar(context, e.toString());
+      showCustomSnackbar(context: context, message: e.toString());
     }
   }
 

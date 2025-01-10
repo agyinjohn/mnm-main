@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:m_n_m/constants/global_variables.dart';
 import 'package:m_n_m/features/auth/screens/onboarding_screen.dart';
@@ -83,13 +86,18 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       onGenerateRoute: (settings) => generateRoute(settings),
-      home: isTokenValid
-          ? (userRole == 'customer' ? const HomeScreen() : const SignInScreen())
-          : isloading
-              ? const Scaffold(body: Center(child: NutsActivityIndicator()))
-              : isUser
-                  ? const SignInScreen()
-                  : const OnboardingScreen(),
+      home:
+          // const RoutingMap(),
+
+          isTokenValid
+              ? (userRole == 'customer'
+                  ? const HomeScreen()
+                  : const SignInScreen())
+              : isloading
+                  ? const Scaffold(body: Center(child: NutsActivityIndicator()))
+                  : isUser
+                      ? const SignInScreen()
+                      : const OnboardingScreen(),
     );
   }
 }
