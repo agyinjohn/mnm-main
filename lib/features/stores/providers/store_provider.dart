@@ -1,15 +1,3 @@
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:m_n_m/features/stores/stores_model.dart';
-
-// import '../stores_api_service.dart';
-
-// final storeServiceProvider = Provider<StoreService>((ref) => StoreService());
-
-// final storeProvider = FutureProvider.family<List<Category>, Map<String, String>>((ref, location) async {
-//   final service = ref.watch(storeServiceProvider);
-//   return await service.fetchNearbyStores(location['longitude']!, location['latitude']!);
-// });
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:m_n_m/providers/delivery_address_provider.dart';

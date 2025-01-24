@@ -133,9 +133,13 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                       },
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
+                          width: double.infinity,
                           height: 300,
                           color: Colors.grey[300],
-                          child: const Icon(Icons.broken_image),
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 50,
+                          ),
                         );
                       },
                     ),

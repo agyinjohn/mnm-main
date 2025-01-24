@@ -15,6 +15,7 @@ class CustomDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.cardColor,
             ),
+            margin: EdgeInsets.zero,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -46,6 +47,14 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           // Drawer items
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 16.0), // Adjust padding here
+            child: Divider(
+              color: Colors.grey.shade400, // Set the color here
+              thickness: 1.0, // Optional: Adjust the thickness
+            ),
+          ),
           Expanded(
             child: ListView(
               children: [
@@ -137,7 +146,7 @@ class DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: Colors.blueAccent),
+      leading: Icon(icon, color: Colors.black),
       title: Text(
         title,
         style: const TextStyle(

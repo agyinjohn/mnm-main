@@ -1,9 +1,11 @@
 // store_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:m_n_m/constants/global_variables.dart';
 import 'package:m_n_m/features/stores/widgets/store_card.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 
+import '../../home/widgets/error_alert_dialogue.dart';
 import '../providers/store_provider.dart';
 import 'store_items_screen.dart';
 
@@ -22,7 +24,7 @@ class StoreListScreen extends ConsumerWidget {
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: const Icon(Icons.arrow_back_ios)),
+            icon: const Icon(Icons.arrow_back)),
         title: Text("$categoryName Stores"),
         // Custom AppBar color
       ),
@@ -56,6 +58,7 @@ class StoreListScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => StoreItemsScreen(
+                            banner: store['images'][0]['url'],
                             storeId: store['_id'],
                             storeName: store['storeName'],
                           ),
@@ -64,8 +67,9 @@ class StoreListScreen extends ConsumerWidget {
                     },
                     child: ShopCard(
                       deliveryTime: '${store['deliveryTime']} mins delivery',
-                      rating: 4.0,
-                      imageUrl: '',
+                      rating: (store['ratings']['totalRatedValue'] as int)
+                          .toDouble(),
+                      imageUrl: '$uri${store['images'][0]['url']}',
                       location: store['storeAddress'],
                       shopName: store['storeName'],
                     ));
@@ -74,7 +78,20 @@ class StoreListScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: NutsActivityIndicator()),
-        error: (error, stack) => Center(child: Text("Error: $error")),
+        error: (error, stack) {
+          Future.delayed(Duration.zero, () {
+            if (context.mounted) {
+              showErrorDialog(
+                context,
+                () async {
+                  ref.invalidate(storesProvider);
+                },
+                'Something went wrong while trying to update data!',
+              );
+            }
+          });
+          return const SizedBox();
+        },
       ),
     );
   }

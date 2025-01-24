@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:m_n_m/features/home/screens/home_page.dart';
 import 'package:m_n_m/features/home/widgets/show_custom_snacbar.dart';
 import 'package:provider/provider.dart';
@@ -95,79 +96,95 @@ class AuthService {
           'Content-Type': 'application/json; charset=UTF-8',
         },
       ).timeout(
-        const Duration(
-          seconds: 20,
-        ),
+        const Duration(seconds: 20),
         onTimeout: () {
           throw TimeoutException('Server response timeout');
         },
       );
+
       print(jsonDecode(res.body));
+
       httpErrorHandle(
         response: res,
-        // ignore: use_build_context_synchronously
         context: context,
         onSuccess: () async {
+          // Decode the token and check user role
+          final data = jsonDecode(res.body);
+          String token = data['token'];
           SharedPreferences prefs = await SharedPreferences.getInstance();
-          // ignore: use_build_context_synchronously
+          Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+          String? role = decodedToken['role'];
 
-          await prefs.setString('x-auth-token', jsonDecode(res.body)['token']);
-          Navigator.pushNamedAndRemoveUntil(
-            // ignore: use_build_context_synchronously
-            context,
-            HomeScreen.routeName,
-            (route) => false,
-          );
+          // Check if the user role is "customer"
+          if (role == 'customer') {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+
+            // Save the token
+            await prefs.setString('x-auth-token', token);
+
+            // Navigate to the HomeScreen
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              HomeScreen.routeName,
+              (route) => false,
+            );
+          } else {
+            // Show an error message if the role is not "customer"
+            showCustomSnackbar(
+              context: context,
+              message: 'You are not authorized to access this app',
+            );
+          }
         },
       );
     } on SocketException catch (s) {
-      showCustomSnackbar(context: context, message: 'Could not connect server');
+      showCustomSnackbar(
+          context: context, message: 'Could not connect to server');
     } on TimeoutException catch (t) {
       showCustomSnackbar(context: context, message: t.message.toString());
     } catch (e) {
-      // ignore: use_build_context_synchronously
       print(e);
-      // showSnackBar(context, e.toString());
-      showCustomSnackbar(context: context, message: e.toString());
+      showCustomSnackbar(
+          context: context, message: 'Something unexpected happened');
     }
   }
 
   // get user data
-  void getUserData(
-    BuildContext context,
-  ) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('x-auth-token');
+  // void getUserData(
+  //   BuildContext context,
+  // ) async {
+  //   try {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? token = prefs.getString('x-auth-token');
 
-      if (token == null) {
-        prefs.setString('x-auth-token', '');
-      }
+  //     if (token == null) {
+  //       prefs.setString('x-auth-token', '');
+  //     }
 
-      var tokenRes = await http.post(
-        Uri.parse('$uri/tokenIsValid'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': token!
-        },
-      );
+  //     var tokenRes = await http.post(
+  //       Uri.parse('$uri/tokenIsValid'),
+  //       headers: <String, String>{
+  //         'Content-Type': 'application/json; charset=UTF-8',
+  //         'x-auth-token': token!
+  //       },
+  //     );
 
-      var response = jsonDecode(tokenRes.body);
+  //     var response = jsonDecode(tokenRes.body);
 
-      if (response == true) {
-        http.Response userRes = await http.get(
-          Uri.parse('$uri/'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-            'x-auth-token': token
-          },
-        );
+  //     if (response == true) {
+  //       http.Response userRes = await http.get(
+  //         Uri.parse('$uri/'),
+  //         headers: <String, String>{
+  //           'Content-Type': 'application/json; charset=UTF-8',
+  //           'x-auth-token': token
+  //         },
+  //       );
 
-        // ignore: use_build_context_synchronously
-      }
-    } catch (e) {
-      // ignore: use_build_context_synchronously
-      showSnackBar(context, e.toString());
-    }
-  }
+  //       // ignore: use_build_context_synchronously
+  //     }
+  //   } catch (e) {
+  //     // ignore: use_build_context_synchronously
+  //     showSnackBar(context, e.toString());
+  //   }
+  // }
 }

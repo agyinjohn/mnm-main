@@ -251,6 +251,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:m_n_m/constants/utils.dart';
+import 'package:m_n_m/features/home/widgets/error_alert_dialogue.dart';
 import 'package:m_n_m/features/stores/providers/order_details.dart';
 import 'package:m_n_m/models/order_details_model.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
@@ -502,7 +503,13 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
   @override
   void initState() {
     super.initState();
-    ref.read(orderDetailsProvider.notifier).fetchOrderDetail(widget.orderId);
+    loadOrderDetails();
+  }
+
+  loadOrderDetails() async {
+    await ref
+        .read(orderDetailsProvider.notifier)
+        .fetchOrderDetail(widget.orderId);
   }
 
   String? currentStatus;
@@ -776,7 +783,18 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
             );
           },
           loading: () => const Center(child: NutsActivityIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
+          error: (error, stack) {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                showErrorDialog(
+                  context,
+                  loadOrderDetails,
+                  'Something went wrong while trying to update data!',
+                );
+              }
+            });
+            return const SizedBox();
+          },
         ),
       ),
 
