@@ -168,6 +168,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:m_n_m/features/auth/services/logout_out.dart';
+import 'package:m_n_m/features/home/screens/privacy_and_policy_page.dart';
+import 'package:m_n_m/features/home/screens/report_issue_page.dart';
+import 'package:m_n_m/features/home/screens/terms_and_conditons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../constants/global_variables.dart';
@@ -197,12 +201,13 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserData() async {
     // Retrieve token from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = prefs.getString('x-auth-token');
 
     if (token != null) {
       try {
         // Decode the JWT token
         final jwt = JwtDecoder.decode(token);
+        print(jwt);
         setState(() {
           userId = jwt['_id'];
           name = jwt['name'];
@@ -246,7 +251,10 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           PopupMenuButton(
             itemBuilder: (context) {
-              return [const PopupMenuItem(child: Text('Logout'))];
+              return [
+                PopupMenuItem(
+                    onTap: () => logout(context), child: const Text('Logout'))
+              ];
             },
           )
         ],
@@ -288,38 +296,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 SizedBox(height: size.height * 0.035),
                 Text('Account Information', style: theme.titleMedium),
                 SizedBox(height: size.height * 0.025),
-                Row(
-                  children: [
-                    SizedBox(
-                      height: 35,
-                      width: 35,
-                      child: Image.asset(
-                          'assets/images/identification-documents.png',
-                          fit: BoxFit.cover),
-                    ),
-                    SizedBox(width: size.width * 0.022),
-                    Text('Verification Status', style: theme.bodyLarge),
-                    const Spacer(),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: size.width * 0.02,
-                            vertical: size.height * 0.012),
-                        child: Center(
-                          child: Text(
-                            'Verified',
-                            style:
-                                theme.bodySmall?.copyWith(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+
                 _buildInformation(
                   context,
                   'assets/images/pencil-drawing.png',
@@ -379,19 +356,35 @@ class _ProfilePageState extends State<ProfilePage> {
                   context,
                   'assets/images/online-support.png',
                   'Make a report',
-                  () {},
+                  () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ReportIssuePage()));
+                  },
                 ),
                 _buildInformation(
                   context,
                   'assets/images/protect.png',
                   'Privacy & Policy',
-                  () {},
+                  () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const PrivacyPolicyPage()));
+                  },
                 ),
                 _buildInformation(
                   context,
                   'assets/images/terms-and-conditions.png',
                   'Terms & Conditions',
-                  () {},
+                  () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const TermsAndConditionsPage()));
+                  },
                 ),
                 SizedBox(height: size.height * 0.028),
                 const Divider(),

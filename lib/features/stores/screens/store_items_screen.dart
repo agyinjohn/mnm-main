@@ -5,7 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:m_n_m/constants/global_variables.dart';
+import 'package:m_n_m/features/cart/providers/cart_provider.dart';
 import 'package:m_n_m/features/cart/screens/shop_cart.dart';
+import 'package:m_n_m/features/home/screens/food_detail_screen.dart';
+import 'package:m_n_m/features/home/screens/home_page.dart';
+import 'package:m_n_m/features/home/widgets/error_alert_dialogue.dart';
+import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 import 'item_detail_screen.dart'; // Import your item detail screen
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -14,11 +19,18 @@ class StoreItemsScreen extends ConsumerStatefulWidget {
   final String storeId;
   final String storeName;
   final String banner;
-
+  final String location;
+  final bool isOpened;
+  final double ratings;
+  final int reviews;
   const StoreItemsScreen(
       {super.key,
+      required this.location,
       required this.storeId,
       required this.storeName,
+      required this.isOpened,
+      required this.reviews,
+      required this.ratings,
       required this.banner});
 
   @override
@@ -26,17 +38,52 @@ class StoreItemsScreen extends ConsumerStatefulWidget {
 }
 
 class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
+  String? selectedSize;
+  String? selectedSizeId;
+  bool isAddingToCart = false;
   late Future<List<Map<String, dynamic>>> _storeItemsFuture;
 
   Future<List<Map<String, dynamic>>> fetchStoreItems() async {
     final response = await http.get(
-      Uri.parse('$uri/auth/stores/items/${widget.storeId}'),
+      Uri.parse('$uri/auth/store-items/${widget.storeId}'),
     );
 
     if (response.statusCode == 200) {
       return List<Map<String, dynamic>>.from(json.decode(response.body));
     } else {
+      print(response.body);
       throw Exception("Failed to load store items");
+    }
+  }
+
+  void addToCart(double selectedSizePrice, String itemName) async {
+    if (selectedSize == null) return;
+
+    // Prepare add-ons for adding to the cart
+    try {
+      setState(() {
+        isAddingToCart = true;
+      });
+
+      await ref.read(cartProvider.notifier).addItem(
+        context,
+        selectedSizeId!, // Assuming 'id' is the unique identifier for the product
+        1,
+        itemName,
+        selectedSizePrice,
+        widget.storeId,
+        [],
+      );
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('${widget.item['name']} added to cart!')),
+      // );
+    } catch (er) {
+      print(er.toString());
+    } finally {
+      setState(() {
+        isAddingToCart = false;
+      });
     }
   }
 
@@ -48,6 +95,7 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final itemCount = ref.watch(storeItemCountProvider(widget.storeId));
     print(widget.banner);
     return Scaffold(
       body: Stack(
@@ -58,8 +106,7 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
               CachedNetworkImage(
                 height: 220,
                 width: double.infinity,
-                imageUrl:
-                    "$uri${widget.banner}", // Replace with your shop image URL
+                imageUrl: widget.banner, // Replace with your shop image URL
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
@@ -95,19 +142,29 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                     future: _storeItemsFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: NutsActivityIndicator());
                       } else if (snapshot.hasError) {
-                        return Center(child: Text("Error: ${snapshot.error}"));
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          showErrorDialog(context, () {
+                            setState(() {
+                              _storeItemsFuture =
+                                  fetchStoreItems(); // Refetch the data
+                            });
+                          }, 'Something went wrong while updating the data');
+                        });
+
+                        return const SizedBox();
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Center(child: Text("No items found"));
                       }
 
                       final storeItems = snapshot.data!;
-
+                      // print(storeItems);
                       return ListView.builder(
                         itemCount: storeItems.length,
                         itemBuilder: (context, index) {
                           final item = storeItems[index];
+
                           final images = item['images'] as List<dynamic>;
 
                           return GestureDetector(
@@ -115,11 +172,15 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ItemDetailScreen(
-                                    item: item,
-                                    storeId: widget.storeId,
-                                  ),
-                                ),
+                                    builder: (context) => FoodDetailsPage(
+                                          item: item,
+                                          storeId: widget.storeId,
+                                        )
+                                    // ItemDetailScreen(
+                                    //   item: item,
+                                    //   storeId: widget.storeId,
+                                    // ),
+                                    ),
                               );
                             },
                             child: Container(
@@ -160,7 +221,7 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                                         ),
                                         items: images.map((img) {
                                           return CachedNetworkImage(
-                                            imageUrl: '$uri${img['url']}',
+                                            imageUrl: '${img['url']}',
                                             fit: BoxFit.cover,
                                             width: 120,
                                             height: 200,
@@ -213,7 +274,7 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                                               ?.copyWith(
                                                 color: Colors.grey[700],
                                               ),
-                                          maxLines: 3,
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 8),
@@ -239,39 +300,67 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          item['itemSizes'].length == 1
-                                              ? "GHS ${double.parse(item['itemSizes'][0]['price'].toString()).toStringAsFixed(2)}"
-                                              : "GHS ${item['itemSizes'].map((e) => double.parse(e['price'].toString())).reduce((a, b) => a < b ? a : b).toStringAsFixed(2)} - GHS ${item['itemSizes'].map((e) => double.parse(e['price'].toString())).reduce((a, b) => a > b ? a : b).toStringAsFixed(2)}",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.green,
+                                        const SizedBox(height: 3),
+                                        if (item['itemSizes'].length == 1) ...[
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "GHC ${double.parse(item['itemSizes'][0]['price'].toString()).toStringAsFixed(2)}",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.green,
+                                                    ),
                                               ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        if (item['itemSizes'].length == 1)
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              // Add to order logic
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                            ),
-                                            child: const Text(
-                                              "Add to Order",
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.white),
-                                            ),
+                                              const SizedBox(height: 8),
+                                              if (!(item['attributes']
+                                                          ?.containsKey(
+                                                              'Add-ons') ==
+                                                      true &&
+                                                  (item['attributes']
+                                                                  ?['Add-ons']
+                                                              as List?)
+                                                          ?.isNotEmpty ==
+                                                      true))
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    // Add to order logic
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        GlobalVariables
+                                                            .secondaryColor,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.shopping_cart,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                            ],
                                           ),
+                                        ] else
+                                          Text(
+                                            "GHC ${item['itemSizes'].map((e) => double.parse(e['price'].toString())).reduce((a, b) => a < b ? a : b).toStringAsFixed(2)} - GHC ${item['itemSizes'].map((e) => double.parse(e['price'].toString())).reduce((a, b) => a > b ? a : b).toStringAsFixed(2)}",
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.green,
+                                                ),
+                                          )
                                       ],
                                     ),
                                   ),
@@ -288,7 +377,7 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
             ],
           ),
           Positioned(
-            top: 150,
+            top: 135,
             left: 16,
             right: 16,
             child: Card(
@@ -302,13 +391,13 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: [
                           Text(
-                            'Apex best foods and gloceries',
-                            style: TextStyle(
+                            widget.storeName,
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -324,23 +413,23 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                         const SizedBox(
                           width: 10,
                         ),
-                        const Text('5:00 am to 4:40'),
                         const SizedBox(
-                          width: 10,
+                          width: 5,
                         ),
                         Container(
-                          height: 5,
-                          width: 5,
+                          width: 75,
+                          height: 24,
                           decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        const Text(
-                          'Closed',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                              borderRadius: BorderRadius.circular(10),
+                              shape: BoxShape.rectangle,
+                              color: Colors.grey),
+                          child: Center(
+                            child: Text(
+                              widget.isOpened ? 'Serving Now' : 'Not Serving',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -349,6 +438,26 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                     ),
                     const Row(
                       children: [],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          widget.location,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.normal),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                      ],
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -363,9 +472,9 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                             const SizedBox(
                               width: 10,
                             ),
-                            const Text(
-                              '${1}',
-                              style: TextStyle(
+                            Text(
+                              '${widget.ratings}',
+                              style: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(
@@ -381,7 +490,7 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
                             const SizedBox(
                               width: 3,
                             ),
-                            const Text('2 reviews')
+                            Text('${widget.reviews} reviews')
                           ],
                         ),
                       ],
@@ -405,8 +514,29 @@ class _StoreItemsScreenState extends ConsumerState<StoreItemsScreen> {
               ),
             ),
           ),
+          Positioned(
+            top: 35,
+            right: 20,
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ShopCart(
+                            storeId: widget.storeId,
+                            storeName: widget.storeName,
+                          ))),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: IconWithBadge(
+                    icon: Icons.shopping_cart_outlined, badgeCount: itemCount),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
+
+//provost -isaac - Amidu

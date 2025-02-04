@@ -251,12 +251,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:m_n_m/constants/utils.dart';
+import 'package:m_n_m/features/auth/screens/my_cart.dart';
+import 'package:m_n_m/features/cart/providers/cart_provider.dart';
+import 'package:m_n_m/features/home/screens/home_page.dart';
+import 'package:m_n_m/features/home/screens/notification_page.dart';
 import 'package:m_n_m/features/home/widgets/error_alert_dialogue.dart';
 import 'package:m_n_m/features/stores/providers/order_details.dart';
 import 'package:m_n_m/models/order_details_model.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../providers/notification_provider.dart';
 import '../../stores/providers/paid_order_provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -283,132 +288,170 @@ class _OrderListPageState extends ConsumerState<OrderListPage> {
   @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(orderProvider);
+    final cartCount = ref.watch(totalCartItemsProvider);
     Size size = MediaQuery.of(context).size;
+    final notificationUnreadCount = ref.watch(unreadNotificationCountProvider);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("Orders"),
-        backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        actions: [
+          GestureDetector(
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => NotificationsPage())),
+            child: IconWithBadge(
+                icon: Icons.notifications_none_outlined,
+                badgeCount: notificationUnreadCount),
+          ),
+          const SizedBox(width: 15),
+          GestureDetector(
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const CartPage())),
+            child: IconWithBadge(
+                icon: Icons.shopping_cart_outlined, badgeCount: cartCount),
+          ),
+          const SizedBox(width: 20),
+        ],
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text(
-            //   "Today",
-            //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            // ),
-            // SizedBox(height: 10),
-            orderState.when(
-              data: (orders) {
-                print(orders);
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(orderProvider.notifier).fetchOrders();
+        },
+        child: SingleChildScrollView(
+          physics:
+              const AlwaysScrollableScrollPhysics(), // Enables pull-to-refresh
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                orderState.when(
+                  data: (orders) {
+                    final today = DateTime.now();
+                    final todayOrders = orders.where((order) {
+                      final orderDate = DateTime.parse(order.date);
+                      return isSameDay(orderDate, today);
+                    }).toList();
 
-                final today = DateTime.now();
-                final todayOrders = orders.where((order) {
-                  final orderDate = DateTime.parse(order.date);
-                  return isSameDay(orderDate, today);
-                }).toList();
+                    final previousOrders = orders.where((order) {
+                      final orderDate = DateTime.parse(order.date);
+                      return !isSameDay(orderDate, today);
+                    }).toList();
 
-                final previousOrders = orders.where((order) {
-                  final orderDate = DateTime.parse(order.date);
-                  return !isSameDay(orderDate, today);
-                }).toList();
-
-                return SizedBox(
-                  height: size.height * 0.75,
-                  child: ListView(
-                    children: [
-                      if (todayOrders.isNotEmpty) ...[
-                        const Text(
-                          "Today",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                    if (todayOrders.isEmpty && previousOrders.isEmpty) {
+                      return SizedBox(
+                        height: size.height * 0.7,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/total-orders.gif',
+                                height: 100,
+                              ),
+                              const Text(
+                                "You have no order records yet.",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                "Once you place orders, they will appear here.",
+                                style:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 10),
-                        ...todayOrders.map((order) {
-                          final DateTime dateTime = DateTime.parse(order.date);
+                      );
+                    }
 
-                          return OrderCard(
-                            from: order.storeName,
-                            status: order.status,
-                            time: timeago.format(dateTime),
-                            title: order.title,
-                            trackable: true,
-                            id: order.id,
-                          );
-                        }),
-                        const SizedBox(height: 20),
+                    return Column(
+                      // mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (todayOrders.isNotEmpty) ...[
+                          const Text(
+                            "Today",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                          ),
+                          const SizedBox(height: 10),
+                          ...todayOrders.map((order) {
+                            final DateTime dateTime =
+                                DateTime.parse(order.date);
+                            return OrderCard(
+                              from: order.storeName,
+                              status: order.status,
+                              time: timeago.format(dateTime),
+                              title: order.title,
+                              trackable: true,
+                              id: order.id,
+                            );
+                          }),
+                          const SizedBox(height: 20),
+                        ],
+                        if (previousOrders.isNotEmpty) ...[
+                          const Text(
+                            "Previous Orders",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                          ),
+                          const SizedBox(height: 10),
+                          ...previousOrders.map((order) {
+                            final DateTime dateTime =
+                                DateTime.parse(order.date);
+                            return OrderCard(
+                              from: order.storeName,
+                              status: order.status,
+                              time: timeago.format(dateTime),
+                              title: order.title,
+                              trackable: true,
+                              id: order.id,
+                            );
+                          }),
+                        ],
                       ],
-                      if (previousOrders.isNotEmpty) ...[
-                        const Text(
-                          "Previous Orders",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        ...previousOrders.map((order) {
-                          final DateTime dateTime = DateTime.parse(order.date);
-                          return OrderCard(
-                            from: order.storeName,
-                            status: order.status,
-                            time: timeago.format(dateTime),
-                            title: order.title,
-                            trackable: true,
-                            id: order.id,
-                          );
-                        }),
-                      ],
-                    ],
-                  ),
-                );
-              },
-              error: (error, stackTrace) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Failed to fetch orders'),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () =>
-                          ref.read(orderProvider.notifier).fetchOrders(),
-                      child: const Text('Retry'),
+                    );
+                  },
+                  error: (error, stackTrace) => const Center(
+                    child: SizedBox(
+                      height: 500,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error, size: 60, color: Colors.red),
+                          SizedBox(height: 10),
+                          Text(
+                            "Something went wrong!",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Pull down to retry.",
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
+                  loading: () => Center(
+                      child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: size.height * 0.3),
+                    child: const NutsActivityIndicator(),
+                  )),
                 ),
-              ),
-              loading: () => const Center(child: NutsActivityIndicator()),
-            )
-            // OrderCard(
-            //   title: "Bulk order",
-            //   from: "Apex Limited",
-            //   time: "10:45 AM, Mon Aug 11 2024",
-            //   status: "Ongoing order",
-            //   trackable: true,
-            // ),
-            // SizedBox(height: 20),
-            // Text(
-            //   "Previous orders",
-            //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            // ),
-            // SizedBox(height: 10),
-            // OrderCard(
-            //   title: "Single order",
-            //   from: "Apex Limited",
-            //   time: "10:45 AM, Mon Aug 11 2024",
-            //   status: "Completed order",
-            //   trackable: false,
-            // ),
-            // OrderCard(
-            //   title: "Bulk order",
-            //   from: "Apex Limited",
-            //   time: "10:45 AM, Mon Aug 11 2024",
-            //   status: "Completed order",
-            //   trackable: false,
-            // ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -443,7 +486,10 @@ class OrderCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Icons.receipt_long, size: 50, color: Colors.grey),
+            Image.asset(
+              'assets/images/od.png',
+              height: 45,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -460,10 +506,24 @@ class OrderCard extends StatelessWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  status,
-                  style: const TextStyle(color: Colors.green),
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Container(
+                      height: 5,
+                      width: 5,
+                      decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(2.5)),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      status,
+                      style: const TextStyle(color: Colors.green),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
                 const SizedBox(
                   height: 10,
@@ -546,7 +606,6 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
         title: const Text("Order Details"),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
       ),
       body: RefreshIndicator(
         onRefresh: _refreshOrderDetails,
@@ -663,7 +722,9 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Divider(),
+                  child: Divider(
+                    color: Colors.grey,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -682,7 +743,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Tracking',
+                        'Order Tracking',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -907,16 +968,19 @@ class PurchasedItemCard extends StatelessWidget {
   });
   double calculateTotal() {
     // Calculate item cost based on size and quantity
+    int qty = 1;
     double itemCost = sizeQuantity.entries.fold(0, (sum, entry) {
       int quantity = int.tryParse(entry.value) ?? 0;
-      return sum + (quantity * costperprice);
+      qty = quantity;
+
+      return (sum + costperprice);
     });
 
     // Add addon costs
     double addonsCost = addons.fold(0, (sum, addon) => sum + addon.price);
 
     // Total cost
-    return itemCost + addonsCost;
+    return (itemCost + addonsCost) * qty;
   }
 
   @override
@@ -962,7 +1026,9 @@ class PurchasedItemCard extends StatelessWidget {
                     ],
                   ))
             ],
-            const Divider(),
+            const Divider(
+              color: Colors.grey,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

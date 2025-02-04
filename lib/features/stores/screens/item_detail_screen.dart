@@ -23,12 +23,14 @@ class ItemDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
+  late Widget sizeSelectionWidget;
   String? selectedSize;
   String? selectedSizeId;
+  bool isAddingToCart = false;
   double selectedSizePrice = 0.0;
   Map<String, int> addOnQuantities = {}; // Stores quantity for each add-on
   int quantity = 1;
-  bool isAddingToCart = false;
+
   double calculateTotalPrice() {
     double totalAddOnPrice = addOnQuantities.entries.fold(
       0.0,
@@ -65,6 +67,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       }).toList();
 
       await ref.read(cartProvider.notifier).addItem(
+            context,
             selectedSizeId!, // Assuming 'id' is the unique identifier for the product
             quantity,
             '${widget.item['name']}-$selectedSize',
@@ -89,6 +92,53 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   Widget build(BuildContext context) {
     final sizes = widget.item['itemSizes'] as List<dynamic>;
     final addOns = widget.item['attributes']['Add-ons'] as List<dynamic>? ?? [];
+    print('>>>>>>>>>>>>>>>>>>>>>>>');
+    print(sizes);
+    if (sizes.length == 1) {
+      // Automatically select the only available size
+      final size = sizes.first;
+      selectedSize = size['name'];
+      selectedSizePrice = size['price'] is String
+          ? double.parse(size['price'])
+          : size['price'].toDouble();
+      selectedSizeId = size["_id"];
+
+      sizeSelectionWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Item Price: GHS ${selectedSizePrice.toStringAsFixed(2)}",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
+      );
+    } else {
+      sizeSelectionWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Select Size (select one):",
+              style: Theme.of(context).textTheme.titleMedium),
+          ...sizes.map((size) {
+            return RadioListTile<String>(
+              title: Text("${size['name']} (GHC${size['price'].toDouble()})"),
+              value: size['name'],
+              groupValue: selectedSize,
+              onChanged: (value) {
+                setState(() {
+                  selectedSize = value;
+                  selectedSizePrice = size['price'] is String
+                      ? double.parse(size['price'])
+                      : size['price'].toDouble();
+                  selectedSizeId = size["_id"];
+                });
+              },
+            );
+          }), // Convert Iterable to List<Widget>
+        ],
+      );
+    }
+
+// ✅ Return the widget outside the conditional block
 
     return Scaffold(
       extendBody: true,
@@ -116,7 +166,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                         bottomLeft: Radius.circular(10),
                         bottomRight: Radius.circular(10)),
                     child: Image.network(
-                      '$uri${img['url']}',
+                      '${img['url']}',
                       width: double.infinity,
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
@@ -213,7 +263,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                     );
                   }),
                   const Divider(),
-
+                  sizeSelectionWidget,
                   // Add-ons with quantity control
                   Text("Add-ons:",
                       style: Theme.of(context).textTheme.titleMedium),

@@ -40,28 +40,33 @@ class _DeliveryAddressPageState extends ConsumerState<DeliveryAddressPage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const MapDeliveryAddressPage()));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MapDeliveryAddressPage(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12), // Reduced padding
                     backgroundColor: AppColors.buttonHoverColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(6), // Smaller radius
                     ),
+                    elevation: 2, // Light shadow for a subtle effect
                   ),
                   child: const Text(
                     "Change Delivery Address",
                     style: TextStyle(
-                        fontSize: 16, color: AppColors.buttonTextColor),
+                      fontSize: 14, // Slightly smaller font size
+                      fontWeight: FontWeight.normal, // Lighter text weight
+                      color: AppColors.buttonTextColor,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12), // Reduced spacing between buttons
                 ElevatedButton(
                   onPressed: () async {
-                    // _showAddressConfirmationDialog(context, ref);
                     setState(() {
                       isLoading = true;
                     });
@@ -74,16 +79,21 @@ class _DeliveryAddressPageState extends ConsumerState<DeliveryAddressPage> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12), // Reduced padding
                     backgroundColor: AppColors.buttonHoverColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(6), // Smaller radius
                     ),
+                    elevation: 2, // Light shadow for a subtle effect
                   ),
                   child: const Text(
                     "Use Current Location",
                     style: TextStyle(
-                        fontSize: 16, color: AppColors.buttonTextColor),
+                      fontSize: 14, // Slightly smaller font size
+                      fontWeight: FontWeight.normal, // Lighter text weight
+                      color: AppColors.buttonTextColor,
+                    ),
                   ),
                 ),
               ],

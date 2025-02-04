@@ -41,11 +41,11 @@ class OrderConfirmationPage extends StatelessWidget {
               children: [
                 const Text(
                   'Item Cost:',
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16),
                 ),
                 Text(
-                  'GHS${itemCost.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 18),
+                  'GHC ${itemCost.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
@@ -55,11 +55,11 @@ class OrderConfirmationPage extends StatelessWidget {
               children: [
                 const Text(
                   'Delivery Cost:',
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16),
                 ),
                 Text(
-                  'GHS${deliveryCost.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 18),
+                  'GHC ${deliveryCost.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
@@ -75,7 +75,7 @@ class OrderConfirmationPage extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'GHS${totalPrice.toStringAsFixed(2)}',
+                  'GHC ${totalPrice.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

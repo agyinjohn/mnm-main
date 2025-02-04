@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:m_n_m/constants/global_variables.dart';
+import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 import '../../../providers/delivery_address_provider.dart';
 
 class MapDeliveryAddressPage extends ConsumerStatefulWidget {
@@ -60,7 +61,7 @@ class _MapDeliveryAddressPageState
         backgroundColor: AppColors.onPrimaryColor,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: NutsActivityIndicator())
           : _initialCameraPosition == null
               ? const Center(
                   child: Text("Unable to determine initial position."),

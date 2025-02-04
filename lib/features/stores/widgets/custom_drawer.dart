@@ -1,60 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:m_n_m/constants/global_variables.dart';
+import 'package:m_n_m/features/home/screens/report_issue_page.dart';
+import 'package:m_n_m/features/home/widgets/show_custom_snacbar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    const String supportPhone = "+233531656697";
+    void callSupport() async {
+      final Uri phoneUri = Uri.parse("tel:$supportPhone");
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        showCustomSnackbar(context: context, message: 'Couldn\'t Place call');
+      }
+    }
+
     return Drawer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: AppColors.cardColor,
-            ),
-            margin: EdgeInsets.zero,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.cardColor,
-                  backgroundImage: AssetImage(
-                    'assets/images/main-logo.png',
-                  ), // Replace with your logo
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Mealex and Mailex',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: DrawerHeader(
+              decoration: BoxDecoration(
+                color: AppColors.cardColor,
+              ),
+              margin: EdgeInsets.zero,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.cardColor,
+                    backgroundImage: AssetImage(
+                      'assets/images/main-logo.png',
+                    ), // Replace with your logo
                   ),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  'Shopping and Delivery Service',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
+                  SizedBox(height: 10),
+                  Text(
+                    'Mealex & Mailex',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 5),
+                  Text(
+                    'Shopping and Delivery Service',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           // Drawer items
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16.0), // Adjust padding here
-            child: Divider(
-              color: Colors.grey.shade400, // Set the color here
-              thickness: 1.0, // Optional: Adjust the thickness
-            ),
-          ),
+
           Expanded(
             child: ListView(
               children: [
@@ -62,8 +71,11 @@ class CustomDrawer extends StatelessWidget {
                   icon: Icons.report,
                   title: 'Make a Report',
                   onTap: () {
-                    // Add functionality here
                     Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ReportIssuePage()));
                   },
                 ),
                 DrawerItem(
@@ -88,6 +100,7 @@ class CustomDrawer extends StatelessWidget {
                   onTap: () {
                     // Add functionality to contact support
                     Navigator.pop(context);
+                    callSupport();
                   },
                 ),
                 DrawerItem(

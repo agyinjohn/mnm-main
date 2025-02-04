@@ -33,6 +33,7 @@ class OrderNotifier extends StateNotifier<AsyncValue<List<Order>>> {
       // print(response.body);
       // print(response.statusCode);
       if (response.statusCode == 200) {
+        print('hereree');
         final data = json.decode(response.body) as List<dynamic>;
         print(data);
         final orders = data.map((order) => Order.fromJson(order)).toList();
@@ -43,7 +44,7 @@ class OrderNotifier extends StateNotifier<AsyncValue<List<Order>>> {
       }
     } catch (e) {
       print(e.toString());
-      // state = AsyncValue.error(e, );
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 }

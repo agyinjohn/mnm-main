@@ -1,3 +1,30 @@
+class StoreDetails {
+  final String name;
+  final String location;
+  final bool isOpen;
+  StoreDetails({
+    required this.name,
+    required this.location,
+    required this.isOpen,
+  });
+
+  factory StoreDetails.fromJson(Map<String, dynamic> json) {
+    return StoreDetails(
+      name: json['name'] as String,
+      location: json['location'] as String,
+      isOpen: json['isOpen'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'location': location,
+      'isOpen': isOpen,
+    };
+  }
+}
+
 class Addon {
   final String name;
   final double price;
@@ -77,11 +104,12 @@ class Store {
   final String storeId;
   final String id;
   final List<CartItem> items;
-
+  final StoreDetails storeDetails;
   Store({
     required this.storeId,
     required this.id,
     required this.items,
+    required this.storeDetails,
   });
 
   factory Store.fromJson(Map<String, dynamic> json) {
@@ -91,6 +119,8 @@ class Store {
       items: (json['items'] as List<dynamic>)
           .map((item) => CartItem.fromJson(item as Map<String, dynamic>))
           .toList(),
+      storeDetails:
+          StoreDetails.fromJson(json['storeDetails'] as Map<String, dynamic>),
     );
   }
 
@@ -99,6 +129,7 @@ class Store {
       'storeId': storeId,
       '_id': id,
       'items': items.map((item) => item.toJson()).toList(),
+      'storeDetails': storeDetails.toJson(),
     };
   }
 }

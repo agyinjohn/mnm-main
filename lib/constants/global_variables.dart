@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
-String uri = 'http://192.168.65.58:8000';
+String uri = 'http://192.168.135.58:8000';
+// String uri = 'https://1142-154-161-156-149.ngrok-free.app';
 
+// 192.168.65.58
+// 192.168.65.58
 class GlobalVariables {
   // COLORS
   static const appBarGradient = LinearGradient(
@@ -29,9 +32,16 @@ class GlobalVariables {
 
   static const categoriesList = [
     'fast food & beverages',
-    'pharmacy',
-    'gift packages',
-    'Gloceries and supermarkets',
+    'Groceries',
+    'Drugs',
+    'Beverage',
+    'Phones',
+    'Laptops',
+    'Cosmetics',
+    'Clothing',
+    'Pet Things',
+    'Gift packages',
+    'Sneakers'
   ];
 
   static const List<Map<String, String>> categoryImages = [

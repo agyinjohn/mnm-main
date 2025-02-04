@@ -5,7 +5,7 @@ import '../../../constants/global_variables.dart';
 Future<void> showErrorDialog(
     BuildContext context, VoidCallback onRetry, String message) async {
   await showDialog(
-    barrierDismissible: false,
+    barrierDismissible: true,
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(

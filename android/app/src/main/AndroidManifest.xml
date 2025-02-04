@@ -6,7 +6,7 @@
 <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <application
            android:usesCleartextTraffic="true"
-        android:label="m_n_m"
+        android:label="MandM"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

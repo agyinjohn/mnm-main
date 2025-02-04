@@ -5,8 +5,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:m_n_m/features/home/screens/home_page.dart';
 
 class ErrorPage extends StatefulWidget {
-  const ErrorPage({super.key});
-
+  const ErrorPage(
+      {super.key,
+      this.errorMessage =
+          'An unexpected error happened. Please check your internet connection and try again'});
+  final String errorMessage;
   @override
   _ErrorPageState createState() => _ErrorPageState();
 }

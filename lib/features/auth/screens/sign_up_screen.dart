@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:m_n_m/common/widgets/custom_button_2.dart';
 import 'package:m_n_m/common/widgets/custom_text_field.dart';
+import 'package:m_n_m/common/widgets/google_login_button.dart';
 import 'package:m_n_m/constants/utils.dart';
 import 'package:m_n_m/features/auth/screens/sign_in_screen.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
@@ -121,7 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Padding(
               padding: EdgeInsets.fromLTRB(
                 14.0,
-                size.height * 0.01,
+                size.height * 0.001,
                 14.0,
                 size.height * 0.01,
               ),
@@ -197,7 +198,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           child: CustomTextField(
                             controller: _phoneController,
                             isPassword: false,
-                            prefixIcon: Icons.email,
+                            prefixIcon: Icons.phone,
                             hintText: 'Phone Number',
                           ),
                         ),
@@ -228,32 +229,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             title: 'Sign Up'),
                         const SizedBox(height: 10),
                         const Text(
-                          'Or continue with',
-                          style: TextStyle(fontWeight: FontWeight.w900),
+                          'OR',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: accounts.map((image) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[300],
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: image,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                        GoogleSignUpButton(
+                            onPressed: () async => await googleSignUp(context)),
                         const SizedBox(
                           height: 10,
                         ),

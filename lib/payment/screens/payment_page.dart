@@ -29,7 +29,7 @@ class _PaystackPaymentPageState extends State<PaystackPaymentPage> {
   String? authorizationUrl; // URL for Paystack Payment
   bool isloading = false;
   // Replace with your backend URL
-  var loadingPercentage = 0;
+  double loadingPercentage = 0;
   String? transactionId;
   @override
   void initState() {
@@ -193,9 +193,16 @@ class _PaystackPaymentPageState extends State<PaystackPaymentPage> {
                         print(url);
                       },
                       onProgressChanged: (controller, progress) {
-                        // loadingPercentage = progress;
+                        setState(() {
+                          loadingPercentage =
+                              progress.toDouble(); // Update progress
+                        });
                       },
                       onLoadStop: (controller, url) async {
+                        setState(() {
+                          loadingPercentage =
+                              0; // Reset progress when a new page loads
+                        });
                         if (url != null) {
                           // Parse the URL using Dart's Uri class
                           final String urlString =
@@ -219,43 +226,6 @@ class _PaystackPaymentPageState extends State<PaystackPaymentPage> {
                       }),
                 ),
               ),
-        // WebViewWidget(
-        //     controller: _webViewController
-        //       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        //       ..setNavigationDelegate(NavigationDelegate(
-        //         onPageStarted: (url) {
-        //           setState(() {
-        //             loadingPercentage = 0;
-        //           });
-        //         },
-        //         onProgress: (progress) {
-        //           setState(() {
-        //             loadingPercentage = progress;
-        //           });
-        //         },
-        //         onPageFinished: (url) {
-        //           setState(() {
-        //             loadingPercentage = 100;
-        //           });
-        //         },
-        //       ))
-        //       ..loadRequest(Uri.parse(authorizationUrl!)),
-        //   )
-        // : WebView(
-        //     initialUrl: authorizationUrl,
-        //     javascriptMode: JavascriptMode.unrestricted,
-        //     onWebViewCreated: (controller) {
-        //       _webViewController = controller;
-        //     },
-        //     navigationDelegate: (navigation) {
-        //       final url = navigation.url;
-        //       if (url.contains("/callback")) {
-        //         handlePaymentResult(url);
-        //         return NavigationDecision.prevent; // Stop further navigation
-        //       }
-        //       return NavigationDecision.navigate;
-        //     },
-        //   ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:m_n_m/common/widgets/google_login_button.dart';
 import 'package:m_n_m/features/auth/screens/forgot_password.dart';
 import 'package:m_n_m/features/auth/screens/sign_up_screen.dart';
+import 'package:m_n_m/features/auth/services/google_sigin_service.dart';
 import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
 
 import '../../../common/widgets/custom_button_2.dart';
@@ -111,7 +113,7 @@ class _SignInPageState extends State<SignInScreen> {
                   ),
                   Container(
                     color: Colors.transparent,
-                    height: 75,
+                    height: 70,
                     child: CustomTextField(
                       controller: _passwordController,
                       isPassword: true,
@@ -120,7 +122,7 @@ class _SignInPageState extends State<SignInScreen> {
                     ),
                   ),
                   Align(
-                    alignment: Alignment.bottomRight,
+                    alignment: Alignment.topRight,
                     child: TextButton(
                       onPressed: () {
                         Navigator.pushNamed(
@@ -136,7 +138,7 @@ class _SignInPageState extends State<SignInScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 5),
                   CustomButton(
                       onTap: () {
                         if (_signInFormKey.currentState!.validate()) {
@@ -151,28 +153,14 @@ class _SignInPageState extends State<SignInScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: accounts.map((image) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            shape: BoxShape.circle,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: image,
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                  GoogleSignUpButton(
+                    onPressed: () => AuthServiceG.signInWithGoogle(
+                      context,
+                    ),
+                    text: "Sign In with Google",
                   ),
                   const SizedBox(
-                    height: 15,
+                    height: 10,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

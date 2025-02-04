@@ -1,21 +1,30 @@
 import 'dart:async';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m_n_m/common/widgets/loading_schema.dart';
 import 'package:m_n_m/constants/global_variables.dart';
+import 'package:m_n_m/features/auth/screens/my_cart.dart';
 import 'package:m_n_m/features/cart/providers/cart_provider.dart';
 import 'package:m_n_m/features/home/screens/categories_page.dart';
 import 'package:m_n_m/features/home/screens/category_deals_screen.dart';
 import 'package:m_n_m/features/home/screens/change_delivery_address.dart';
 import 'package:m_n_m/features/home/screens/error_page.dart';
-import 'package:m_n_m/features/home/screens/favourite_screen.dart';
+import 'package:m_n_m/features/home/screens/notification_page.dart';
 import 'package:m_n_m/features/home/screens/profile_page.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:m_n_m/providers/delivery_address_provider.dart';
+import 'package:m_n_m/features/stores/screens/store_items_screen.dart';
+import 'package:m_n_m/features/stores/screens/stores_list_page.dart';
+import 'package:m_n_m/providers/notification_provider.dart';
+import 'package:nuts_activity_indicator/nuts_activity_indicator.dart';
+import 'package:shimmer/shimmer.dart';
+import '../../../models/delivery_address_model.dart';
+import '../../../providers/delivery_address_provider.dart';
+import '../../../providers/popular_stores_provider.dart';
 import '../../cart/screens/cart_screen.dart';
 import '../../stores/widgets/custom_drawer.dart';
+import '../../cart/providers/cart_provider.dart' as ct;
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +42,27 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _getCurrentLocation();
+  }
+
+  Future<void> getCartItems() async {
+    print('Fetching store items');
+
+    // Check if the ref is still mounted before proceeding
+    if (!mounted) {
+      print('Aborted fetch because ref is disposed.');
+      return;
+    }
+
+    try {
+      ref.read(ct.cartProvider.notifier).fetchStores();
+
+      // Double-check if the widget is still mounted before printing or updating UI state
+      // if (ref.mounted) {
+      //   print('Fetched stores: ${stores.map((e) => e.items.map((i) => i.addons.map((a) => a.name)))}');
+      // }
+    } catch (e) {
+      print('Error fetching store items: $e');
+    }
   }
 
   // Method to get current location
@@ -83,6 +113,16 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
       //   _currentPosition!.latitude,
       //   _currentPosition!.longitude,
       // );
+      final tempAddress = DeliveryAddress(
+        latitude: _currentPosition!.latitude,
+        longitude: _currentPosition!.longitude,
+        streetName: "Current Location",
+        subLocality: "Unknown",
+      );
+      await ref
+          .read(popularStoresProvider.notifier)
+          .fetchPopularStores(tempAddress);
+
       await ref
           .read(deliveryAddressProvider.notifier)
           .setDeliveryAddress(
@@ -92,11 +132,10 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
           .timeout(const Duration(seconds: 30), onTimeout: () {
         throw TimeoutException("Network request timed out");
       });
-      // print(placemarks[2]);
-      // Placemark place = placemarks[2];
-      // setState(() {
-      //   isloading = false;
-      // });
+      print(mounted);
+      if (mounted) {
+        await getCartItems();
+      }
     } on TimeoutException catch (error) {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const ErrorPage()));
@@ -121,7 +160,6 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
     final List<Widget> bottomNavigationBarScreens = [
       HomePage(
         scaffoldKey: scaffoldKey,
@@ -135,11 +173,13 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
     ];
 
     return Scaffold(
+      backgroundColor: Colors.white,
       key: scaffoldKey,
       drawer: const CustomDrawer(),
       body: isloading
           ? const Center(child: HomeLoadingShimmer())
-          : SafeArea(
+          : Padding(
+              padding: const EdgeInsets.only(top: 20),
               child: bottomNavigationBarScreens[_selectedIndex],
             ),
       bottomNavigationBar: isloading
@@ -177,12 +217,12 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onFavouriteTap;
   final String? currentAddress;
   final GlobalKey<ScaffoldState> scaffoldKey;
-  HomePage(
+  const HomePage(
       {super.key,
       required this.onCategoryTap,
       required this.onFavouriteTap,
@@ -190,6 +230,11 @@ class HomePage extends ConsumerWidget {
       required this.scaffoldKey,
       required});
 
+  @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
   final List<Category> categories = [
     Category('Food', 'assets/images/cat-food.jpg'),
     Category('Groceries', 'assets/images/cat-vegs.jpg'),
@@ -235,53 +280,220 @@ class HomePage extends ConsumerWidget {
     },
   ];
 
+  bool isLoading = false;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final deliveryAddress = ref.watch(deliveryAddressProvider);
+
+    // Listen to changes in deliveryAddress and fetch popular stores
+
+    final popularStores = ref.watch(popularStoresProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HomeHeader(
-            scaffoldKey: scaffoldKey,
-          ),
           const SizedBox(height: 16),
+          HomeHeader(
+            scaffoldKey: widget.scaffoldKey,
+          ),
+
           // const SearchBar(),
-          // const SizedBox(height: 16),
-          CarouselSlider.builder(
-            itemCount: homeBannerItems.length,
-            itemBuilder: (context, index, realIndex) {
-              final item = homeBannerItems[index];
-              return BannerCard(item: item);
-            },
+          const SizedBox(height: 16),
+          CarouselSlider(
+            items: [
+              Center(
+                child: Image.asset(
+                  'assets/images/f1.png',
+                  fit: BoxFit.cover,
+                  width:
+                      double.infinity, // Make it expand to the available width
+                  height: double.infinity, // Stretch to the container's height
+                ),
+              ),
+              Image.asset(
+                'assets/images/s1.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+              Image.asset(
+                'assets/images/t1.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ],
             options: CarouselOptions(
-              height: 165,
+              height: 140, // Increased height
               enlargeCenterPage: true,
               autoPlay: true,
               aspectRatio: 16 / 9,
               autoPlayCurve: Curves.fastOutSlowIn,
               enableInfiniteScroll: true,
-              viewportFraction: 1,
+              viewportFraction: 1, // Reduce to make the center image larger
             ),
           ),
           const SizedBox(height: 16),
           SectionHeader(
             title: 'Top Categories',
-            icon: const Icon(Icons.category_outlined),
-            onViewAllTap: onCategoryTap,
+            icon: const Icon(Icons.category),
+            onViewAllTap: widget.onCategoryTap,
+            showViewall: true,
           ),
           const SizedBox(height: 12),
           CategoryList(categories: categories),
           const SizedBox(height: 16),
           const SizedBox(height: 16),
           SectionHeader(
-            title: 'Favourites',
+            title: 'Popular Shops',
             icon: const Icon(Icons.star_outline_outlined),
-            onViewAllTap: onFavouriteTap,
+            onViewAllTap: widget.onFavouriteTap,
           ),
           const SizedBox(height: 12),
-          FavouriteList(favourites: favourites),
+          // FavouriteList(favourites: favourites),
+          popularStores.when(
+            data: (stores) {
+              print(stores.length);
+              if (stores.isEmpty) {
+                return const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image(
+                        height: 150,
+                        image: AssetImage('assets/images/outbound.png')),
+                    Center(
+                      child: Text(
+                        "You location seems a bit far",
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal, // Horizontal scrolling
+                  itemCount: stores.length,
+                  itemBuilder: (context, index) {
+                    final store = stores[index]['stores'][0];
+
+                    print(store);
+                    // print(store['stores']['storeName']);
+                    final totalRatedValue = store['ratings'] != null &&
+                            store['ratings']['totalRatedValue'] != null
+                        ? double.tryParse(store['ratings']['totalRatedValue']
+                                .toString()) ??
+                            0.0
+                        : 0.0;
+                    return Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: FavouriteCard(
+                          reviews: store['ratings']['totalPeopleRated'],
+                          isOpened: store['open'],
+                          storeId: store['_id'],
+                          location: store['storeAddress'],
+                          title: store['storeName'],
+                          vendor: 'Apex',
+                          price: 30,
+                          rating: totalRatedValue,
+                          image: '${store['images']['imageId']['url']}'),
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => SizedBox(
+              height: 170,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 5, // Simulating 5 loading items
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Container(
+                        width: 170, // Adjust width to match store cards
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            error: (err, _) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const SizedBox(
+                    height: 120,
+                  ),
+                  Container(
+                    height: 50,
+                    padding: const EdgeInsets.all(10),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Failed to fetch popular stores',
+                            style: TextStyle(color: Colors.white),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                            onTap: () async {
+                              if (deliveryAddress != null) {
+                                try {
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+                                  await ref
+                                      .read(popularStoresProvider.notifier)
+                                      .fetchPopularStores(deliveryAddress);
+                                } catch (e) {
+                                  debugPrint('Hey');
+                                } finally {
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+                                }
+                              }
+                            },
+                            child: isLoading
+                                ? const NutsActivityIndicator()
+                                : const Text(
+                                    'Refresh',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15),
+                                  ))
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -300,7 +512,9 @@ class HomeHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cart = ref.watch(cartProvider);
+    final cartCount = ref.watch(totalCartItemsProvider);
+    final notificationUnreadCount = ref.watch(unreadNotificationCountProvider);
+    // print(cartCount);
     final deliveryAddress = ref.watch(deliveryAddressProvider);
     return Row(
       children: [
@@ -309,7 +523,18 @@ class HomeHeader extends ConsumerWidget {
               print('taopppp');
               scaffoldKey.currentState?.openDrawer();
             },
-            child: const CircleIconButton(icon: Icons.category_outlined)),
+            child: const CircleIconButton(
+              icon: Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Image(
+                    fit: BoxFit.contain,
+                    height: 10,
+                    width: 20,
+                    image: AssetImage(
+                      'assets/images/apps.png',
+                    )),
+              ),
+            )),
         const SizedBox(width: 8),
         Expanded(
           child: GestureDetector(
@@ -327,9 +552,22 @@ class HomeHeader extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        const IconWithBadge(
-            icon: Icons.notifications_none_outlined, badgeCount: 1),
+        GestureDetector(
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (context) => NotificationsPage())),
+          child: IconWithBadge(
+              icon: Icons.notifications_none_outlined,
+              badgeCount: notificationUnreadCount),
+        ),
+        const SizedBox(
+          width: 10,
+        ),
+        GestureDetector(
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const CartPage())),
+          child: IconWithBadge(
+              icon: Icons.shopping_cart_outlined, badgeCount: cartCount),
+        ),
       ],
     );
   }
@@ -337,7 +575,7 @@ class HomeHeader extends ConsumerWidget {
 
 // Circle icon button widget
 class CircleIconButton extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
 
   const CircleIconButton({super.key, required this.icon});
 
@@ -350,7 +588,7 @@ class CircleIconButton extends StatelessWidget {
         shape: BoxShape.circle,
         color: Colors.grey.shade300,
       ),
-      child: Icon(icon),
+      child: icon,
     );
   }
 }
@@ -419,19 +657,24 @@ class IconWithBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Icon(icon, size: 28),
-        Positioned(
-          right: 0,
-          top: 0,
-          child: CircleAvatar(
-            backgroundColor: AppColors.primaryColor,
-            radius: 7,
-            child: Text(
-              badgeCount.toString(),
-              style: const TextStyle(fontSize: 8),
+        Icon(
+          icon,
+          size: 28,
+          color: Colors.black,
+        ),
+        if (badgeCount >= 1)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: CircleAvatar(
+              backgroundColor: AppColors.primaryColor,
+              radius: 7,
+              child: Text(
+                badgeCount.toString(),
+                style: const TextStyle(fontSize: 8),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -582,11 +825,12 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final Icon icon;
   final VoidCallback onViewAllTap;
-
+  final bool showViewall;
   const SectionHeader(
       {super.key,
       required this.title,
       required this.onViewAllTap,
+      this.showViewall = false,
       required this.icon});
 
   @override
@@ -600,25 +844,26 @@ class SectionHeader extends StatelessWidget {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const Spacer(),
-        GestureDetector(
-          onTap: onViewAllTap,
-          child: const Row(
-            children: [
-              Text(
-                'View all',
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.bold,
+        if (showViewall)
+          GestureDetector(
+            onTap: onViewAllTap,
+            child: const Row(
+              children: [
+                Text(
+                  'View all',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_outlined,
-                size: 12,
-                color: AppColors.primaryColor,
-              ),
-            ],
+                Icon(
+                  Icons.arrow_forward_ios_outlined,
+                  size: 12,
+                  color: AppColors.primaryColor,
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -644,10 +889,17 @@ class _CategoryListState extends State<CategoryList> {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: widget.categories.map((category) {
+      children: widget.categories.asMap().entries.map((entry) {
+        int index = entry.key; // Get the index
+        var category = entry.value;
         return GestureDetector(
           onTap: () {
-            navigateToCategoryPage(context, category.title);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => StoreListScreen(
+                      categoryName: GlobalVariables.categoriesList[index])),
+            );
           },
           child: CategoryCard(
             title: category.title,
@@ -675,11 +927,15 @@ class FavouriteList extends StatelessWidget {
         itemCount: favourites.length,
         itemBuilder: (context, index) {
           return FavouriteCard(
+            reviews: 1,
+            isOpened: true,
+            storeId: ' 2',
             title: favourites[index].title,
             vendor: favourites[index].vendor,
             price: favourites[index].price,
             rating: favourites[index].rating,
             image: favourites[index].image,
+            location: 'Location',
           );
         },
       ),
@@ -730,7 +986,10 @@ class FavouriteCard extends StatefulWidget {
   final double price;
   final double rating;
   final String image;
-
+  final String location;
+  final String storeId;
+  final bool isOpened;
+  final int reviews;
   const FavouriteCard({
     super.key,
     required this.title,
@@ -738,8 +997,12 @@ class FavouriteCard extends StatefulWidget {
     required this.price,
     required this.rating,
     required this.image,
+    required this.location,
+    required this.storeId,
+    required this.isOpened,
+    required this.reviews,
   });
-
+//1. Amidu
   @override
   _FavouriteCardState createState() => _FavouriteCardState();
 }
@@ -767,13 +1030,30 @@ class _FavouriteCardState extends State<FavouriteCard> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              widget.image,
+            child: CachedNetworkImage(
+              imageUrl: widget.image,
               height: 184,
               width: double.infinity,
               fit: BoxFit.cover,
+              placeholder: (context, url) => const Center(
+                child: SizedBox(),
+              ),
+              errorWidget: (context, url, error) => Container(
+                height: 184,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: const Icon(Icons.broken_image,
+                    size: 50, color: Colors.grey),
+              ),
             ),
           ),
+          //  Image.network(
+          //   widget.image,
+          //   height: 184,
+          //   width: double.infinity,
+          //   fit: BoxFit.cover,
+          // ),
+
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -814,17 +1094,28 @@ class _FavouriteCardState extends State<FavouriteCard> {
             ),
           ),
           Positioned(
-            top: 8,
+            top: 4,
             right: 8,
             child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  isFavourite = !isFavourite;
-                });
-              },
-              child: Icon(
-                isFavourite ? Icons.favorite : Icons.favorite_border,
-                color: Colors.white,
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => StoreItemsScreen(
+                          ratings: widget.rating,
+                          reviews: widget.reviews,
+                          isOpened: widget.isOpened,
+                          location: widget.location,
+                          storeId: widget.storeId,
+                          storeName: widget.title,
+                          banner: widget.image))),
+              child: const CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 15,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),
@@ -835,33 +1126,39 @@ class _FavouriteCardState extends State<FavouriteCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                  overflow: TextOverflow.ellipsis,
+                Padding(
+                  padding: const EdgeInsets.only(left: 3),
+                  child: Text(
+                    widget.title,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(
-                      'Vendor: ${widget.vendor}',
-                      style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '\$${widget.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                    const Icon(Icons.location_on,
+                        size: 16, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        widget.location,
+                        style: const TextStyle(color: Colors.white),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
+                // Text(
+                //   '\$${widget.price.toStringAsFixed(2)}',
+                //   style: const TextStyle(
+                //       fontSize: 22,
+                //       fontWeight: FontWeight.bold,
+                //       color: Colors.white),
+                // ),
               ],
             ),
           ),
